@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Retro Card Match - Mobile Optimized</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Card Match - Fixed for Laptop</title>
     <style>
         :root {
             --primary: #ff00ff;
@@ -24,19 +24,6 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Press Start 2P', cursive, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
         }
 
         body {
@@ -46,7 +33,6 @@
             overflow-x: hidden;
             opacity: 0;
             transition: opacity 0.5s ease;
-            touch-action: manipulation;
         }
 
         body.loaded {
@@ -57,15 +43,12 @@
         .section {
             display: none;
             min-height: 100vh;
-            padding: 10px;
+            padding: 15px;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             position: relative;
             z-index: 10;
-            width: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         .section.active {
@@ -77,30 +60,28 @@
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
             text-align: center;
             justify-content: center;
-            padding: 20px 15px;
         }
 
         .main-title {
             color: var(--accent);
-            text-shadow: 2px 2px 0 var(--primary), 4px 4px 0 #000;
-            font-size: clamp(1.8rem, 8vw, 3.5rem);
-            margin-bottom: 20px;
-            letter-spacing: 2px;
+            text-shadow: 3px 3px 0 var(--primary), 6px 6px 0 #000;
+            font-size: 3.5rem;
+            margin-bottom: 25px;
+            letter-spacing: 3px;
             animation: titleGlow 3s infinite alternate;
             transform: translateZ(0);
-            line-height: 1.2;
         }
 
         @keyframes titleGlow {
-            0% { text-shadow: 2px 2px 0 var(--primary), 4px 4px 0 #000; }
-            100% { text-shadow: 2px 2px 0 var(--secondary), 4px 4px 0 #000, 0 0 10px var(--secondary); }
+            0% { text-shadow: 3px 3px 0 var(--primary), 6px 6px 0 #000; }
+            100% { text-shadow: 3px 3px 0 var(--secondary), 6px 6px 0 #000, 0 0 15px var(--secondary); }
         }
 
         .main-menu {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            margin-top: 25px;
+            gap: 15px;
+            margin-top: 30px;
             max-width: 500px;
             width: 100%;
         }
@@ -109,21 +90,16 @@
             background: linear-gradient(135deg, #ff6600, #cc3300);
             color: white;
             border: none;
-            padding: 16px 20px;
-            font-size: clamp(0.8rem, 4vw, 1.1rem);
+            padding: 18px 25px;
+            font-size: 1.1rem;
             cursor: pointer;
-            border-radius: 10px;
-            border: 3px solid var(--accent);
-            box-shadow: 0 6px 0 #992200;
+            border-radius: 12px;
+            border: 4px solid var(--accent);
+            box-shadow: 0 8px 0 #992200;
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
             transform: translateZ(0);
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
         }
 
         .menu-btn::before {
@@ -137,21 +113,24 @@
             transition: 0.5s;
         }
 
-        .menu-btn:hover::before, .menu-btn:active::before {
+        .menu-btn:hover::before {
             left: 100%;
         }
 
-        .menu-btn:active {
+        .menu-btn:hover {
             background: linear-gradient(135deg, #ff8800, #dd5500);
             transform: translateY(4px);
-            box-shadow: 0 2px 0 #992200;
+            box-shadow: 0 4px 0 #992200;
+        }
+
+        .menu-btn:active {
+            transform: translateY(8px);
+            box-shadow: none;
         }
 
         /* Game Screen */
         #game-screen {
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
-            padding-top: 10px;
-            padding-bottom: 20px;
         }
 
         .game-header {
@@ -160,38 +139,36 @@
             align-items: center;
             width: 100%;
             max-width: 900px;
-            margin-bottom: 12px;
-            padding: 10px;
+            margin-bottom: 15px;
+            padding: 12px;
             background: rgba(0, 0, 0, 0.6);
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
         }
 
         .game-title {
             color: var(--accent);
-            font-size: clamp(0.9rem, 4vw, 1.6rem);
-            text-shadow: 1px 1px 0 #000;
+            font-size: 1.6rem;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .back-btn {
             background: linear-gradient(135deg, #3366ff, #0033cc);
             color: white;
             border: none;
-            padding: 8px 12px;
-            font-size: clamp(0.6rem, 3vw, 0.8rem);
+            padding: 8px 16px;
+            font-size: 0.8rem;
             cursor: pointer;
-            border-radius: 6px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 4px 0 #001a66;
+            border-radius: 8px;
+            border: 3px solid var(--accent);
+            box-shadow: 0 5px 0 #001a66;
             transition: all 0.2s;
-            min-height: 40px;
-            touch-action: manipulation;
         }
 
-        .back-btn:active {
+        .back-btn:hover {
             transform: translateY(2px);
-            box-shadow: 0 2px 0 #001a66;
+            box-shadow: 0 3px 0 #001a66;
         }
 
         .game-info {
@@ -199,35 +176,31 @@
             justify-content: space-between;
             width: 100%;
             max-width: 900px;
-            margin-bottom: 8px;
-            padding: 8px;
+            margin-bottom: 10px;
+            padding: 10px;
             background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--secondary);
-            border-radius: 8px;
-            flex-wrap: wrap;
+            border: 3px solid var(--secondary);
+            border-radius: 10px;
         }
 
         .info-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 0 6px;
-            flex: 1;
-            min-width: 25%;
-            margin-bottom: 5px;
+            padding: 0 8px;
         }
 
         .info-label {
-            font-size: clamp(0.6rem, 2.5vw, 0.8rem);
+            font-size: 0.8rem;
             color: var(--secondary);
-            margin-bottom: 3px;
-            text-shadow: 0 0 3px var(--secondary);
+            margin-bottom: 4px;
+            text-shadow: 0 0 5px var(--secondary);
         }
 
         .info-value {
-            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            font-size: 1.2rem;
             color: var(--accent);
-            text-shadow: 0 0 5px var(--accent);
+            text-shadow: 0 0 8px var(--accent);
         }
 
         /* Enhanced UI Elements */
@@ -237,53 +210,43 @@
             align-items: center;
             width: 100%;
             max-width: 900px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .combo-display {
             display: flex;
-            gap: 15px;
-            margin-bottom: 8px;
-            padding: 6px 12px;
+            gap: 20px;
+            margin-bottom: 10px;
+            padding: 8px 15px;
             background: rgba(0, 0, 0, 0.6);
-            border-radius: 6px;
+            border-radius: 8px;
             border: 2px solid var(--accent);
-            width: 100%;
-            justify-content: space-around;
         }
 
         .combo-count, .multiplier {
-            font-size: clamp(0.6rem, 3vw, 0.8rem);
+            font-size: 0.8rem;
             color: var(--accent);
         }
 
         .power-ups {
             display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-            width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .power-btn {
             background: linear-gradient(135deg, #3366ff, #0033cc);
             color: white;
             border: none;
-            padding: 8px 10px;
-            font-size: clamp(0.5rem, 2.5vw, 0.7rem);
+            padding: 8px 12px;
+            font-size: 0.7rem;
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 2px solid var(--accent);
             transition: all 0.2s;
-            min-height: 40px;
-            flex: 1;
-            min-width: 30%;
-            max-width: 120px;
-            touch-action: manipulation;
         }
 
-        .power-btn:active:not(:disabled) {
+        .power-btn:hover:not(:disabled) {
             background: linear-gradient(135deg, #5588ff, #0044dd);
             transform: translateY(2px);
         }
@@ -296,9 +259,9 @@
 
         .progress-bar {
             width: 100%;
-            height: 8px;
+            height: 10px;
             background: rgba(255,255,255,0.1);
-            border-radius: 4px;
+            border-radius: 5px;
             margin: 5px 0;
             overflow: hidden;
         }
@@ -307,21 +270,20 @@
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             transition: width 0.3s ease;
-            border-radius: 4px;
+            border-radius: 5px;
             width: 0%;
         }
 
         .game-board {
             display: grid;
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 10px;
-            perspective: 1000px;
+            perspective: 1200px;
             max-width: 900px;
             width: 100%;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
             transform: translateZ(0);
-            padding: 5px;
         }
 
         .game-board.visible {
@@ -342,15 +304,13 @@
         }
 
         .card {
-            height: clamp(70px, 18vw, 100px);
+            height: 100px;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            border-radius: 8px;
-            touch-action: manipulation;
+            border-radius: 10px;
             transform: translateZ(0);
-            -webkit-touch-callout: none;
         }
 
         .card.flipped {
@@ -374,8 +334,8 @@
 
         @keyframes shake {
             0%, 100% { transform: rotateY(180deg) translateX(0); }
-            20%, 60% { transform: rotateY(180deg) translateX(-3px); }
-            40%, 80% { transform: rotateY(180deg) translateX(3px); }
+            20%, 60% { transform: rotateY(180deg) translateX(-5px); }
+            40%, 80% { transform: rotateY(180deg) translateX(5px); }
         }
 
         .card-front, .card-back {
@@ -383,12 +343,12 @@
             width: 100%;
             height: 100%;
             backface-visibility: hidden;
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px solid;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            border: 3px solid;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             transform: translateZ(0);
         }
 
@@ -396,62 +356,61 @@
             background: linear-gradient(135deg, var(--primary), #cc00cc);
             border-color: rgba(255, 255, 255, 0.7);
             transform: rotateY(180deg);
-            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            font-size: 1.8rem;
             color: var(--accent);
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .card-back {
             background: linear-gradient(135deg, var(--secondary), #0099cc);
             border-color: rgba(255, 255, 255, 0.5);
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
         }
 
-        .card-back:active {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+        .card-back:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
         }
 
         .card-back::before {
             content: "?";
-            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            font-size: 1.8rem;
             color: var(--accent);
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .game-controls {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 10px;
             flex-wrap: wrap;
             max-width: 900px;
             width: 100%;
-            padding: 0 5px;
         }
 
         .control-btn {
             background: linear-gradient(135deg, #ff6600, #cc3300);
             color: white;
             border: none;
-            padding: 12px 16px;
-            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            padding: 12px 20px;
+            font-size: 0.9rem;
             cursor: pointer;
-            border-radius: 8px;
-            border: 2px solid var(--accent);
-            box-shadow: 0 5px 0 #992200;
+            border-radius: 10px;
+            border: 3px solid var(--accent);
+            box-shadow: 0 6px 0 #992200;
             transition: all 0.2s;
-            touch-action: manipulation;
-            min-height: 50px;
-            flex: 1;
-            min-width: 45%;
-            max-width: 200px;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(135deg, #ff8800, #dd5500);
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #992200;
         }
 
         .control-btn:active {
-            background: linear-gradient(135deg, #ff8800, #dd5500);
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #992200;
+            transform: translateY(6px);
+            box-shadow: none;
         }
 
         /* Combo Indicator */
@@ -460,15 +419,13 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(1.8rem, 10vw, 3rem);
+            font-size: 3rem;
             color: var(--accent);
-            text-shadow: 0 0 8px var(--primary);
+            text-shadow: 0 0 10px var(--primary);
             opacity: 0;
             pointer-events: none;
             z-index: 50;
             transform: translateZ(0);
-            text-align: center;
-            padding: 10px;
         }
 
         .combo-indicator.active {
@@ -488,39 +445,36 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 12px;
+            padding: 15px;
             background: rgba(0, 0, 0, 0.7);
-            border: 3px solid var(--accent);
-            border-radius: 12px;
+            border: 4px solid var(--accent);
+            border-radius: 15px;
             max-width: 500px;
             margin-bottom: 10px;
-            width: 95%;
         }
 
         .start-message h2 {
             color: var(--accent);
-            margin-bottom: 6px;
-            font-size: clamp(1.2rem, 5vw, 1.6rem);
+            margin-bottom: 8px;
+            font-size: 1.6rem;
         }
 
         .start-message p {
             color: var(--secondary);
-            margin-bottom: 6px;
-            line-height: 1.3;
-            font-size: clamp(0.7rem, 3vw, 0.85rem);
+            margin-bottom: 8px;
+            line-height: 1.4;
+            font-size: 0.85rem;
         }
 
         /* Multiplayer Indicator */
         .multiplayer-indicator {
             display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
-            padding: 6px 12px;
+            gap: 15px;
+            margin-bottom: 10px;
+            padding: 8px 15px;
             background: rgba(0, 0, 0, 0.6);
-            border-radius: 6px;
+            border-radius: 8px;
             border: 2px solid var(--accent);
-            width: 100%;
-            justify-content: space-around;
         }
 
         .player-indicator {
@@ -530,19 +484,19 @@
         }
 
         .player-label {
-            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            font-size: 0.7rem;
             color: var(--secondary);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .player-score {
-            font-size: clamp(0.8rem, 4vw, 1rem);
+            font-size: 1rem;
             color: var(--accent);
         }
 
         .player-indicator.active .player-label {
             color: var(--accent);
-            text-shadow: 0 0 3px var(--accent);
+            text-shadow: 0 0 5px var(--accent);
         }
 
         .player-indicator.player1 .player-label::before {
@@ -556,47 +510,44 @@
         /* Options Screen */
         #options-screen {
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
-            justify-content: flex-start;
-            padding-top: 20px;
         }
 
         .options-container {
             max-width: 800px;
             width: 100%;
             background: rgba(0, 0, 0, 0.6);
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-            margin-bottom: 20px;
+            border: 4px solid var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
         }
 
         .options-title {
             color: var(--accent);
-            font-size: clamp(1.5rem, 7vw, 2.2rem);
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
             text-align: center;
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .option-group {
-            margin-bottom: 20px;
-            padding: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            border-left: 5px solid var(--accent);
         }
 
         .option-title {
             color: var(--accent);
-            font-size: clamp(0.9rem, 4vw, 1.2rem);
-            margin-bottom: 12px;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
             text-shadow: 1px 1px 0 #000;
         }
 
         .option-buttons {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -604,75 +555,68 @@
             background: linear-gradient(135deg, #3366ff, #0033cc);
             color: white;
             border: none;
-            padding: 10px 15px;
-            font-size: clamp(0.7rem, 3vw, 0.9rem);
+            padding: 10px 20px;
+            font-size: 0.9rem;
             cursor: pointer;
-            border-radius: 6px;
+            border-radius: 8px;
             border: 2px solid var(--accent);
             transition: all 0.2s;
-            flex: 1;
-            min-width: 30%;
-            min-height: 50px;
-            touch-action: manipulation;
         }
 
         .option-btn.active {
             background: linear-gradient(135deg, var(--primary), #cc00cc);
-            box-shadow: 0 0 8px var(--primary);
+            box-shadow: 0 0 10px var(--primary);
         }
 
-        .option-btn:active:not(.active) {
+        .option-btn:hover:not(.active) {
             background: linear-gradient(135deg, #5588ff, #0044dd);
         }
 
         /* Achievements Screen */
         #achievements-screen {
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
-            justify-content: flex-start;
-            padding-top: 20px;
         }
 
         .achievements-container {
             max-width: 800px;
             width: 100%;
             background: rgba(0, 0, 0, 0.6);
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            border: 4px solid var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
             max-height: 80vh;
             overflow-y: auto;
-            margin-bottom: 20px;
         }
 
         .achievements-title {
             color: var(--accent);
-            font-size: clamp(1.5rem, 7vw, 2.2rem);
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
             text-align: center;
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .achievement {
             background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent);
             transition: all 0.3s;
         }
 
         .achievement.earned {
             border-left-color: var(--success);
             background: rgba(0, 255, 0, 0.15);
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
         }
 
         .achievement-name {
             font-weight: bold;
             color: var(--accent);
-            margin-bottom: 6px;
-            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
         .achievement.earned .achievement-name {
@@ -680,100 +624,94 @@
         }
 
         .achievement-desc {
-            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            font-size: 0.7rem;
             color: #ccc;
         }
 
         /* Statistics Screen */
         #statistics-screen {
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
-            justify-content: flex-start;
-            padding-top: 20px;
         }
 
         .stats-container {
             max-width: 800px;
             width: 100%;
             background: rgba(0, 0, 0, 0.6);
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-            margin-bottom: 20px;
+            border: 4px solid var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
         }
 
         .stats-title {
             color: var(--accent);
-            font-size: clamp(1.5rem, 7vw, 2.2rem);
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
             text-align: center;
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .stat-item {
-            margin-bottom: 15px;
-            padding: 10px;
+            margin-bottom: 18px;
+            padding: 12px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.3s;
         }
 
         .stat-item:hover {
             background: rgba(255, 255, 255, 0.15);
-            transform: translateX(3px);
+            transform: translateX(5px);
         }
 
         .stat-name {
             font-weight: bold;
             color: var(--accent);
-            margin-bottom: 6px;
-            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
         .stat-value {
-            font-size: clamp(0.9rem, 4vw, 1.1rem);
+            font-size: 1.1rem;
             color: var(--secondary);
         }
 
         /* Collection Screen */
         #collection-screen {
             background: linear-gradient(135deg, #1a1f2b, #0d0f17);
-            justify-content: flex-start;
-            padding-top: 20px;
         }
 
         .collection-container {
             max-width: 800px;
             width: 100%;
             background: rgba(0, 0, 0, 0.6);
-            border: 3px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-            margin-bottom: 20px;
+            border: 4px solid var(--primary);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
         }
 
         .collection-title {
             color: var(--accent);
-            font-size: clamp(1.5rem, 7vw, 2.2rem);
-            margin-bottom: 20px;
+            font-size: 2.2rem;
+            margin-bottom: 30px;
             text-align: center;
-            text-shadow: 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000;
         }
 
         .card-collection {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 15px;
             justify-content: center;
-            margin: 15px 0;
+            margin: 20px 0;
         }
 
         .collection-card {
-            width: clamp(60px, 18vw, 80px);
-            height: clamp(75px, 22vw, 100px);
+            width: 80px;
+            height: 100px;
             background: linear-gradient(135deg, var(--primary), #cc00cc);
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -781,43 +719,41 @@
             border: 2px solid var(--accent);
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 3px 0 #cc00cc;
-            touch-action: manipulation;
+            box-shadow: 0 4px 0 #cc00cc;
         }
 
-        .collection-card:active {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 0 #cc00cc;
+        .collection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 0 #cc00cc;
         }
 
         .collection-card.locked {
             background: linear-gradient(135deg, #555, #333);
             filter: grayscale(1);
-            box-shadow: 0 3px 0 #333;
+            box-shadow: 0 4px 0 #333;
         }
 
-        .collection-card.locked:active {
+        .collection-card.locked:hover {
             transform: none;
-            box-shadow: 0 3px 0 #333;
+            box-shadow: 0 4px 0 #333;
         }
 
         .collection-card-icon {
-            font-size: clamp(1.2rem, 6vw, 1.8rem);
-            margin-bottom: 6px;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
         }
 
         .collection-card-name {
-            font-size: clamp(0.5rem, 2.5vw, 0.6rem);
+            font-size: 0.6rem;
             text-align: center;
-            padding: 0 2px;
         }
 
-        /* Particle Effects - Reduced for mobile */
+        /* Particle Effects */
         .particle {
             position: absolute;
             pointer-events: none;
-            width: 6px;
-            height: 6px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             animation: particleFloat 1s ease-out forwards;
             transform: translateZ(0);
@@ -830,17 +766,17 @@
             }
             100% {
                 opacity: 0;
-                transform: translate(var(--tx, 0), var(--ty, -30px)) scale(0);
+                transform: translate(var(--tx, 0), var(--ty, -50px)) scale(0);
             }
         }
 
         /* Audio Controls */
         .audio-controls {
             position: fixed;
-            bottom: 15px;
-            right: 15px;
+            bottom: 20px;
+            right: 20px;
             display: flex;
-            gap: 8px;
+            gap: 10px;
             z-index: 100;
         }
 
@@ -849,18 +785,17 @@
             color: var(--accent);
             border: 2px solid var(--accent);
             border-radius: 50%;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-size: 1.2rem;
             transition: all 0.3s;
-            touch-action: manipulation;
         }
 
-        .audio-btn:active {
+        .audio-btn:hover {
             background: rgba(255, 204, 0, 0.2);
             transform: scale(1.1);
         }
@@ -881,7 +816,6 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.5s ease;
-            padding: 20px;
         }
 
         .win-animation.active {
@@ -891,33 +825,33 @@
 
         .win-content {
             background: rgba(0, 0, 0, 0.8);
-            border: 3px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px;
+            border: 4px solid var(--accent);
+            border-radius: 15px;
+            padding: 30px;
             text-align: center;
             max-width: 500px;
-            width: 95%;
-            box-shadow: 0 0 20px var(--accent);
+            width: 90%;
+            box-shadow: 0 0 30px var(--accent);
         }
 
         .win-title {
             color: var(--accent);
-            font-size: clamp(1.5rem, 8vw, 2.5rem);
-            margin-bottom: 15px;
-            text-shadow: 0 0 8px var(--accent);
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px var(--accent);
         }
 
         .win-stats {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 15px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .win-stat {
             display: flex;
             justify-content: space-between;
-            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            font-size: 0.9rem;
         }
 
         .win-stat-label {
@@ -963,71 +897,72 @@
             font-size: 1rem;
         }
 
-        /* Landscape orientation adjustments */
-        @media (max-height: 500px) and (orientation: landscape) {
-            #home-screen {
-                padding-top: 10px;
-                padding-bottom: 10px;
-                justify-content: flex-start;
-            }
-            
+        /* Responsive Design */
+        @media (max-width: 768px) {
             .main-title {
-                margin-bottom: 10px;
-                font-size: 1.8rem;
-            }
-            
-            .main-menu {
-                margin-top: 10px;
-                gap: 8px;
-            }
-            
-            .menu-btn {
-                padding: 10px 15px;
-                min-height: 45px;
-            }
-            
-            .game-header {
-                margin-bottom: 8px;
-                padding: 8px;
-            }
-            
-            .game-info {
-                margin-bottom: 6px;
-                padding: 6px;
+                font-size: 2.5rem;
             }
             
             .card {
-                height: 60px;
-            }
-        }
-
-        /* Very small screens */
-        @media (max-width: 350px) {
-            .section {
-                padding: 8px;
+                height: 90px;
             }
             
-            .game-board {
-                gap: 5px;
+            .card-front, .card-back::before {
+                font-size: 1.6rem;
             }
             
-            .card {
-                height: 65px;
+            .menu-btn, .control-btn {
+                padding: 12px 18px;
+                font-size: 0.9rem;
             }
             
-            .menu-btn, .control-btn, .option-btn {
-                min-height: 50px;
+            .info-value {
+                font-size: 1.2rem;
             }
             
             .power-btn {
-                min-height: 35px;
+                font-size: 0.6rem;
+                padding: 6px 10px;
             }
         }
 
-        /* Prevent zoom on input focus for iOS */
-        @media screen and (max-width: 768px) {
-            input, select, textarea {
-                font-size: 16px !important;
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .card {
+                height: 80px;
+            }
+            
+            .card-front, .card-back::before {
+                font-size: 1.4rem;
+            }
+            
+            .menu-btn, .control-btn {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+            
+            .game-controls {
+                gap: 8px;
+            }
+            
+            .info-item {
+                padding: 0 5px;
+            }
+            
+            .info-label {
+                font-size: 0.7rem;
+            }
+            
+            .info-value {
+                font-size: 1rem;
+            }
+            
+            .power-btn {
+                font-size: 0.5rem;
+                padding: 5px 8px;
             }
         }
     </style>
@@ -1051,7 +986,7 @@
     <!-- Home Screen -->
     <section id="home-screen" class="section active">
         <h1 class="main-title">RETRO CARD MATCH</h1>
-        <p style="color: var(--secondary); margin-bottom: 20px; font-size: clamp(0.8rem, 4vw, 1.1rem);">Match pairs of cards to win!</p>
+        <p style="color: var(--secondary); margin-bottom: 25px; font-size: 1.1rem;">Match pairs of cards to win!</p>
         
         <div class="main-menu">
             <button class="menu-btn" data-target="game-screen">PLAY GAME</button>
@@ -1126,7 +1061,7 @@
         
         <div class="start-message" id="start-message">
             <h2>READY TO PLAY?</h2>
-            <p>Tap the "START GAME" button to begin matching cards!</p>
+            <p>Click the "START GAME" button to begin matching cards!</p>
             <p>Match all pairs to win!</p>
         </div>
         
@@ -1178,7 +1113,7 @@
                 </div>
             </div>
             
-            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1187,7 +1122,7 @@
         <div class="achievements-container">
             <h2 class="achievements-title">ACHIEVEMENTS</h2>
             <div id="achievements-list"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1196,7 +1131,7 @@
         <div class="stats-container">
             <h2 class="stats-title">GAME STATISTICS</h2>
             <div id="stats-list"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1205,7 +1140,7 @@
         <div class="collection-container">
             <h2 class="collection-title">CARD COLLECTION</h2>
             <div class="card-collection" id="card-collection"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
         </div>
     </section>
 
@@ -1242,9 +1177,7 @@
             currentDifficulty: 'normal',
             currentTheme: 'retro',
             playerScores: [0, 0],
-            currentPlayer: 0,
-            // Mobile-specific state
-            touchEnabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0
+            currentPlayer: 0
         };
 
         // Enhanced game state
@@ -1263,26 +1196,26 @@
             freezeTimeRemaining: 0
         };
 
-        // Difficulty settings - adjusted for mobile
+        // Difficulty settings
         const difficultySettings = {
             easy: { rows: 3, cols: 4 },   // 12 cards, 6 pairs
             normal: { rows: 4, cols: 4 }, // 16 cards, 8 pairs
-            hard: { rows: 4, cols: 5 }    // 20 cards, 10 pairs (reduced from 6x6 for mobile)
+            hard: { rows: 6, cols: 6 }    // 36 cards, 18 pairs
         };
 
         // Themes
         const themes = {
             retro: {
                 name: "RETRO ARCADE",
-                symbols: ['👾', '🕹️', '🎮', '🚀', '👻', '⭐', '💎', '🔺', '🔷', '🟥']
+                symbols: ['👾', '🕹️', '🎮', '🚀', '👻', '⭐', '💎', '🔺', '🔷', '🟥', '🟩', '🟨', '🔴', '🟢', '🔵', '🟣', '🟠', '⚪']
             },
             fantasy: {
                 name: "FANTASY REALM", 
-                symbols: ['🐉', '⚔️', '🛡️', '🏰', '👑', '💍', '🧙', '🧝', '🐲', '🗡️']
+                symbols: ['🐉', '⚔️', '🛡️', '🏰', '👑', '💍', '🧙', '🧝', '🐲', '🗡️', '🏹', '🔮', '🪄', '🐺', '🦅', '🧌', '🧚', '🐍']
             },
             space: {
                 name: "SPACE EXPLORER",
-                symbols: ['🪐', '🚀', '👽', '⭐', '🌙', '🛸', '☄️', '🌌', '🛰️', '🌠']
+                symbols: ['🪐', '🚀', '👽', '⭐', '🌙', '🛸', '☄️', '🌌', '🛰️', '🌠', '🔭', '⚛️', '🌍', '🌕', '🛎️', '🧪', '🔬', '🪙']
             }
         };
 
@@ -1316,7 +1249,7 @@
             cardsCollected: 0
         };
 
-        // Enhanced Sound Manager with mobile optimizations
+        // Enhanced Sound Manager with improved sounds
         const soundManager = {
             audioContext: null,
             masterGain: null,
@@ -1339,9 +1272,9 @@
                     this.sfxGain.connect(this.masterGain);
                     this.masterGain.connect(this.audioContext.destination);
                     
-                    this.masterGain.gain.value = 0.6;
-                    this.musicGain.gain.value = 0.3;
-                    this.sfxGain.gain.value = 0.5;
+                    this.masterGain.gain.value = 0.6; // Lower overall volume
+                    this.musicGain.gain.value = 0.3; // Softer music
+                    this.sfxGain.gain.value = 0.5; // Softer sound effects
                     
                     this.initialized = true;
                     console.log("Audio system initialized successfully");
@@ -1351,17 +1284,14 @@
                 }
             },
             
-            // Resume audio context on user interaction (required for mobile)
-            resumeAudio() {
-                if (this.audioContext && this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
-                }
-            },
-            
+            // Softer music system
             playMusic(track = 'main') {
                 if (!this.initialized || !gameState.musicOn) return;
                 
-                this.resumeAudio();
+                // Resume context if suspended
+                if (this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
                 
                 // Stop any existing music
                 this.stopMusic();
@@ -1375,30 +1305,30 @@
                 
                 // Different music patterns based on track
                 if (track === 'main') {
-                    this.musicOscillator.type = 'sine';
+                    this.musicOscillator.type = 'sine'; // Softer sine wave
                     this.musicOscillator.frequency.setValueAtTime(220, this.audioContext.currentTime);
                     
                     // Create a simple chiptune melody
-                    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+                    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63]; // C, E, G, C, G, E
                     let time = this.audioContext.currentTime;
                     
                     notes.forEach((note, index) => {
                         this.musicOscillator.frequency.setValueAtTime(note, time);
-                        time += 0.4;
+                        time += 0.4; // Slower tempo
                     });
                     
                     // Loop the melody
                     this.musicOscillator.frequency.setValueAtTime(notes[0], time);
                 } else if (track === 'game') {
-                    this.musicOscillator.type = 'triangle';
-                    this.musicOscillator.frequency.setValueAtTime(196.00, this.audioContext.currentTime);
+                    this.musicOscillator.type = 'triangle'; // Softer triangle wave
+                    this.musicOscillator.frequency.setValueAtTime(196.00, this.audioContext.currentTime); // G
                     
                     // Pulsing effect for game music
-                    const pulseTime = 0.8;
+                    const pulseTime = 0.8; // Slower pulse
                     let currentTime = this.audioContext.currentTime;
                     
                     for (let i = 0; i < 16; i++) {
-                        gainNode.gain.setValueAtTime(0.2, currentTime);
+                        gainNode.gain.setValueAtTime(0.2, currentTime); // Lower volume
                         gainNode.gain.exponentialRampToValueAtTime(0.05, currentTime + pulseTime);
                         currentTime += pulseTime;
                     }
@@ -1431,11 +1361,9 @@
                 return gameState.soundOn;
             },
             
-            // Sound effects
+            // Softer sound effects
             playTone(frequency, duration, type = 'sine', volume = 0.2) {
                 if (!this.initialized || !gameState.soundOn) return;
-                
-                this.resumeAudio();
                 
                 try {
                     const oscillator = this.audioContext.createOscillator();
@@ -1458,34 +1386,56 @@
             },
             
             playFlip() {
-                this.playTone(523.25, 0.15, 'sine');
-                setTimeout(() => this.playTone(659.25, 0.12, 'sine'), 80);
+                this.playTone(523.25, 0.15, 'sine'); // Softer sine wave, longer duration
+                setTimeout(() => this.playTone(659.25, 0.12, 'sine'), 80); // Softer follow-up
             },
             
             playMatch() {
-                this.playTone(659.25, 0.4, 'sine');
+                this.playTone(659.25, 0.4, 'sine'); // Softer, longer
                 setTimeout(() => this.playTone(783.99, 0.4, 'sine'), 150);
                 setTimeout(() => this.playTone(1046.50, 0.5, 'sine'), 300);
+                
+                // Add celebratory tones
+                setTimeout(() => {
+                    this.playTone(523.25, 0.3, 'triangle');
+                    this.playTone(659.25, 0.3, 'triangle');
+                    this.playTone(783.99, 0.3, 'triangle');
+                }, 400);
             },
             
             playMismatch() {
-                this.playTone(220, 0.3, 'sine');
+                this.playTone(220, 0.3, 'sine'); // Softer sine wave
                 setTimeout(() => this.playTone(196, 0.4, 'sine'), 200);
                 setTimeout(() => this.playTone(174.61, 0.3, 'sine'), 400);
             },
             
             playCombo(comboLevel) {
-                const baseFreq = 440 + (comboLevel * 30);
-                this.playTone(baseFreq, 0.5, 'sine');
+                const baseFreq = 440 + (comboLevel * 30); // Smaller frequency increments
+                this.playTone(baseFreq, 0.5, 'sine'); // Softer sine wave
                 setTimeout(() => this.playTone(baseFreq + 60, 0.4, 'sine'), 250);
                 setTimeout(() => this.playTone(baseFreq + 120, 0.3, 'sine'), 500);
+                
+                // Special sound for high combos
+                if (comboLevel >= 5) {
+                    setTimeout(() => {
+                        this.playTone(1046.50, 0.6, 'sine');
+                        this.playTone(1318.51, 0.6, 'sine');
+                    }, 600);
+                }
             },
             
             playWin() {
-                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
                 notes.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.5, 'sine', 0.4), i * 200);
+                    setTimeout(() => this.playTone(freq, 0.5, 'sine', 0.4), i * 200); // Slower, softer
                 });
+                
+                // Add a final celebratory chord
+                setTimeout(() => {
+                    this.playTone(523.25, 1.2, 'sine', 0.3); // C5
+                    this.playTone(659.25, 1.2, 'sine', 0.3); // E5
+                    this.playTone(783.99, 1.2, 'sine', 0.3); // G5
+                }, 1500);
             },
             
             playPowerUp(type) {
@@ -1493,36 +1443,36 @@
                 
                 switch(type) {
                     case 'hint':
-                        frequencies = [523.25, 659.25, 783.99];
+                        frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
                         break;
                     case 'shuffle':
-                        frequencies = [392.00, 493.88, 587.33];
+                        frequencies = [392.00, 493.88, 587.33]; // G4, B4, D5
                         break;
                     case 'freeze':
-                        frequencies = [261.63, 329.63, 392.00];
+                        frequencies = [261.63, 329.63, 392.00]; // C4, E4, G4
                         break;
                     default:
-                        frequencies = [440, 554.37, 659.25];
+                        frequencies = [440, 554.37, 659.25]; // A4, C#5, E5
                 }
                 
                 frequencies.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.4, 'sine'), i * 150);
+                    setTimeout(() => this.playTone(freq, 0.4, 'sine'), i * 150); // Softer, slower
                 });
             },
             
             playButtonClick() {
-                this.playTone(330, 0.15, 'sine');
+                this.playTone(330, 0.15, 'sine'); // Softer sine wave
             },
             
             playMenuTransition() {
-                this.playTone(659.25, 0.3, 'sine');
+                this.playTone(659.25, 0.3, 'sine'); // Softer, longer
                 setTimeout(() => this.playTone(523.25, 0.3, 'sine'), 150);
             },
             
             playAchievement() {
-                const notes = [1046.50, 1174.66, 1318.51, 1396.91, 1567.98];
+                const notes = [1046.50, 1174.66, 1318.51, 1396.91, 1567.98]; // C6, D6, E6, F6, G6
                 notes.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.5), i * 150);
+                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.5), i * 150); // Softer, slower
                 });
             }
         };
@@ -1573,9 +1523,6 @@
         function initGame() {
             console.log("Initializing game...");
             
-            // Set up mobile-specific optimizations
-            setupMobileOptimizations();
-            
             // Hide loading indicator after a short delay
             setTimeout(() => {
                 elements.loadingIndicator.style.opacity = '0';
@@ -1609,49 +1556,12 @@
             console.log("Game initialized successfully!");
         }
 
-        // Set up mobile-specific optimizations
-        function setupMobileOptimizations() {
-            // Prevent default touch behaviors that could interfere with gameplay
-            document.addEventListener('touchstart', function(e) {
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            document.addEventListener('touchend', function(e) {
-                if (e.touches.length > 0) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-            
-            // Prevent context menu on long press
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-            });
-            
-            // Handle orientation changes
-            window.addEventListener('orientationchange', function() {
-                // Brief delay to allow orientation to complete
-                setTimeout(function() {
-                    // Refresh the game board layout if needed
-                    if (gameState.gameStarted) {
-                        elements.gameBoard.style.display = 'none';
-                        void elements.gameBoard.offsetWidth; // Trigger reflow
-                        elements.gameBoard.style.display = 'grid';
-                    }
-                }, 300);
-            });
-        }
-
         // Set up navigation between sections
         function setupNavigation() {
             // Menu buttons
             const menuButtons = document.querySelectorAll('.menu-btn');
             menuButtons.forEach(button => {
-                button.addEventListener('click', (e) => {
-                    // Resume audio on user interaction (required for iOS)
-                    soundManager.resumeAudio();
-                    
+                button.addEventListener('click', () => {
                     const target = button.getAttribute('data-target');
                     soundManager.playMenuTransition();
                     showSection(target);
@@ -1662,7 +1572,6 @@
             const backButtons = document.querySelectorAll('.back-btn');
             backButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    soundManager.resumeAudio();
                     const target = button.getAttribute('data-target');
                     soundManager.playMenuTransition();
                     showSection(target);
@@ -1671,14 +1580,12 @@
             
             // Audio control buttons
             elements.musicToggle.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 const isOn = soundManager.toggleMusic();
                 elements.musicToggle.textContent = isOn ? '🎵' : '🔇';
                 soundManager.playButtonClick();
             });
             
             elements.soundToggle.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 const isOn = soundManager.toggleSound();
                 elements.soundToggle.textContent = isOn ? '🔊' : '🔇';
                 soundManager.playButtonClick();
@@ -1686,7 +1593,6 @@
             
             // Continue button for win screen
             elements.continueBtn.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 elements.winAnimation.classList.remove('active');
                 soundManager.playButtonClick();
             });
@@ -1731,7 +1637,6 @@
         function initGameScreen() {
             // Set up game controls
             elements.startBtn.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 if (gameState.gameStarted) {
                     // If game is already started, reset it
@@ -1743,13 +1648,11 @@
             });
             
             elements.resetBtn.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 resetGame();
             });
             
             elements.multiplayerBtn.addEventListener('click', () => {
-                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 toggleMultiplayer();
             });
@@ -1765,14 +1668,16 @@
 
         // Initialize options screen
         function initOptionsScreen() {
+            console.log("Initializing options screen...");
+            
             const optionButtons = document.querySelectorAll('.option-btn');
             
             optionButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    soundManager.resumeAudio();
                     const option = button.getAttribute('data-option');
                     const value = button.getAttribute('data-value');
                     
+                    console.log(`Option clicked: ${option} = ${value}`);
                     soundManager.playButtonClick();
                     
                     // Handle different option types
@@ -1801,31 +1706,38 @@
                     updateOptionButtons(option, value, button);
                 });
             });
+            
+            console.log("Options screen initialized!");
         }
 
         // Initialize achievements screen
         function initAchievementsScreen() {
+            console.log("Initializing achievements screen...");
             updateAchievementsDisplay();
         }
 
         // Initialize statistics screen
         function initStatisticsScreen() {
+            console.log("Initializing statistics screen...");
             updateStatsDisplay();
         }
 
         // Initialize collection screen
         function initCollectionScreen() {
+            console.log("Initializing collection screen...");
             updateCardCollectionDisplay();
         }
 
         // Set game difficulty
         function setDifficulty(difficulty) {
+            console.log(`Setting difficulty to: ${difficulty}`);
             gameState.currentDifficulty = difficulty;
             resetGame();
         }
 
         // Set game theme
         function setTheme(theme) {
+            console.log(`Setting theme to: ${theme}`);
             gameState.currentTheme = theme;
             resetGame();
         }
@@ -1833,6 +1745,7 @@
         // Toggle music
         function toggleMusic() {
             gameState.musicOn = !gameState.musicOn;
+            console.log(`Music: ${gameState.musicOn ? 'ON' : 'OFF'}`);
             
             if (gameState.musicOn) {
                 soundManager.playMusic('main');
@@ -1844,15 +1757,18 @@
         // Toggle sound
         function toggleSound() {
             gameState.soundOn = !gameState.soundOn;
+            console.log(`Sound: ${gameState.soundOn ? 'ON' : 'OFF'}`);
         }
 
         // Toggle colorblind mode
         function toggleColorblind() {
+            console.log("Colorblind mode toggled");
             document.body.classList.toggle('colorblind-mode');
         }
 
         // Toggle high contrast mode
         function toggleHighContrast() {
+            console.log("High contrast mode toggled");
             document.body.classList.toggle('high-contrast-mode');
         }
 
@@ -1942,7 +1858,6 @@
         // Power-up: Hint
         function useHint() {
             if (enhancedState.powerUps.hint > 0 && gameState.gameStarted) {
-                soundManager.resumeAudio();
                 soundManager.playPowerUp('hint');
                 
                 const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched)'));
@@ -1967,11 +1882,10 @@
                     }
                     
                     if (!matchFound) {
-                        // Simple alert for mobile - could be replaced with a custom modal
-                        setTimeout(() => alert("No matches available to hint!"), 100);
+                        alert("No matches available to hint!");
                     }
                 } else {
-                    setTimeout(() => alert("Not enough cards left to use hint!"), 100);
+                    alert("Not enough cards left to use hint!");
                 }
             }
         }
@@ -1979,7 +1893,7 @@
         // Highlight cards with a glow effect
         function highlightCards(cards) {
             cards.forEach(card => {
-                card.style.boxShadow = '0 0 15px var(--accent)';
+                card.style.boxShadow = '0 0 20px var(--accent)';
                 setTimeout(() => {
                     card.style.boxShadow = '';
                 }, 2000);
@@ -1989,7 +1903,6 @@
         // Power-up: Shuffle
         function useShuffle() {
             if (enhancedState.powerUps.shuffle > 0 && gameState.gameStarted) {
-                soundManager.resumeAudio();
                 soundManager.playPowerUp('shuffle');
                 
                 // Only shuffle unmatched cards
@@ -2023,7 +1936,6 @@
         // Power-up: Freeze Time
         function useFreeze() {
             if (enhancedState.powerUps.freeze > 0 && gameState.gameStarted && !enhancedState.freezeTimeActive) {
-                soundManager.resumeAudio();
                 soundManager.playPowerUp('freeze');
                 
                 enhancedState.freezeTimeActive = true;
@@ -2097,12 +2009,7 @@
                 card.appendChild(cardFront);
                 card.appendChild(cardBack);
                 
-                // Use both click and touch events for maximum compatibility
                 card.addEventListener('click', () => flipCard(card));
-                card.addEventListener('touchend', (e) => {
-                    e.preventDefault();
-                    flipCard(card);
-                });
                 
                 elements.gameBoard.appendChild(card);
             });
@@ -2194,7 +2101,7 @@
                     updateMultiplayerDisplay();
                 }
                 
-                // Create particle effects (reduced for mobile)
+                // Create particle effects
                 createParticles(card1);
                 createParticles(card2);
                 
@@ -2234,16 +2141,13 @@
             updateGameDisplay();
         }
 
-        // Create particle effects for matches (optimized for mobile)
+        // Create particle effects for matches
         function createParticles(card) {
-            // Reduce particle count for mobile performance
-            if (!gameState.touchEnabled) return;
-            
             const rect = card.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             
-            for (let i = 0; i < 5; i++) { // Reduced from 8 to 5
+            for (let i = 0; i < 8; i++) {
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 
@@ -2252,8 +2156,8 @@
                 particle.style.background = `hsl(${hue}, 70%, 60%)`;
                 
                 // Random direction and distance
-                const angle = (i / 5) * Math.PI * 2;
-                const distance = 30 + Math.random() * 40; // Reduced distance
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 50 + Math.random() * 50;
                 const tx = Math.cos(angle) * distance;
                 const ty = Math.sin(angle) * distance;
                 
