@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Retro Card Match - Mobile Optimized</title>
+    <style>
+        :root {
+            --primary: #ff00ff;
+            --secondary: #00ffff;
+            --accent: #ffcc00;
+            --background: #1a1f2b;
+            --card-bg: #0d0f17;
+            --text: #e0e0e0;
+            --success: #00ff00;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --player1: #ff4444;
+            --player2: #4444ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Press Start 2P', cursive, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--background), #0a0c14);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            touch-action: manipulation;
+        }
+
+        body.loaded {
+            opacity: 1;
+        }
+
+        /* Section Styling */
+        .section {
+            display: none;
+            min-height: 100vh;
+            padding: 10px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .section.active {
+            display: flex;
+        }
+
+        /* Home Screen */
+        #home-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            text-align: center;
+            justify-content: center;
+            padding: 20px 15px;
+        }
+
+        .main-title {
+            color: var(--accent);
+            text-shadow: 2px 2px 0 var(--primary), 4px 4px 0 #000;
+            font-size: clamp(1.8rem, 8vw, 3.5rem);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            animation: titleGlow 3s infinite alternate;
+            transform: translateZ(0);
+            line-height: 1.2;
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 2px 2px 0 var(--primary), 4px 4px 0 #000; }
+            100% { text-shadow: 2px 2px 0 var(--secondary), 4px 4px 0 #000, 0 0 10px var(--secondary); }
+        }
+
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #ff6600, #cc3300);
+            color: white;
+            border: none;
+            padding: 16px 20px;
+            font-size: clamp(0.8rem, 4vw, 1.1rem);
+            cursor: pointer;
+            border-radius: 10px;
+            border: 3px solid var(--accent);
+            box-shadow: 0 6px 0 #992200;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .menu-btn:hover::before, .menu-btn:active::before {
+            left: 100%;
+        }
+
+        .menu-btn:active {
+            background: linear-gradient(135deg, #ff8800, #dd5500);
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #992200;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            padding-top: 10px;
+            padding-bottom: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        .game-title {
+            color: var(--accent);
+            font-size: clamp(0.9rem, 4vw, 1.6rem);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #3366ff, #0033cc);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            font-size: clamp(0.6rem, 3vw, 0.8rem);
+            cursor: pointer;
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 4px 0 #001a66;
+            transition: all 0.2s;
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        .back-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #001a66;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 6px;
+            flex: 1;
+            min-width: 25%;
+            margin-bottom: 5px;
+        }
+
+        .info-label {
+            font-size: clamp(0.6rem, 2.5vw, 0.8rem);
+            color: var(--secondary);
+            margin-bottom: 3px;
+            text-shadow: 0 0 3px var(--secondary);
+        }
+
+        .info-value {
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        /* Enhanced UI Elements */
+        .enhanced-ui {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 8px;
+        }
+
+        .combo-display {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            width: 100%;
+            justify-content: space-around;
+        }
+
+        .combo-count, .multiplier {
+            font-size: clamp(0.6rem, 3vw, 0.8rem);
+            color: var(--accent);
+        }
+
+        .power-ups {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .power-btn {
+            background: linear-gradient(135deg, #3366ff, #0033cc);
+            color: white;
+            border: none;
+            padding: 8px 10px;
+            font-size: clamp(0.5rem, 2.5vw, 0.7rem);
+            cursor: pointer;
+            border-radius: 5px;
+            border: 2px solid var(--accent);
+            transition: all 0.2s;
+            min-height: 40px;
+            flex: 1;
+            min-width: 30%;
+            max-width: 120px;
+            touch-action: manipulation;
+        }
+
+        .power-btn:active:not(:disabled) {
+            background: linear-gradient(135deg, #5588ff, #0044dd);
+            transform: translateY(2px);
+        }
+
+        .power-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+            border-radius: 4px;
+            width: 0%;
+        }
+
+        .game-board {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 10px;
+            perspective: 1000px;
+            max-width: 900px;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            transform: translateZ(0);
+            padding: 5px;
+        }
+
+        .game-board.visible {
+            opacity: 1;
+        }
+
+        /* Grid layouts for different difficulties */
+        .game-board.easy {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .game-board.normal {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .game-board.hard {
+            grid-template-columns: repeat(6, 1fr);
+        }
+
+        .card {
+            height: clamp(70px, 18vw, 100px);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            border-radius: 8px;
+            touch-action: manipulation;
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            animation: matchedPulse 1s ease-in-out;
+            pointer-events: none;
+        }
+
+        .card.mismatch {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes matchedPulse {
+            0% { transform: rotateY(180deg) scale(1); }
+            50% { transform: rotateY(180deg) scale(1.1); filter: brightness(1.5); }
+            100% { transform: rotateY(180deg) scale(1); filter: brightness(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotateY(180deg) translateX(0); }
+            20%, 60% { transform: rotateY(180deg) translateX(-3px); }
+            40%, 80% { transform: rotateY(180deg) translateX(3px); }
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+            transform: translateZ(0);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, var(--primary), #cc00cc);
+            border-color: rgba(255, 255, 255, 0.7);
+            transform: rotateY(180deg);
+            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            color: var(--accent);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, var(--secondary), #0099cc);
+            border-color: rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .card-back:active {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-back::before {
+            content: "?";
+            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            color: var(--accent);
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            max-width: 900px;
+            width: 100%;
+            padding: 0 5px;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, #ff6600, #cc3300);
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+            cursor: pointer;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            box-shadow: 0 5px 0 #992200;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            min-height: 50px;
+            flex: 1;
+            min-width: 45%;
+            max-width: 200px;
+        }
+
+        .control-btn:active {
+            background: linear-gradient(135deg, #ff8800, #dd5500);
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #992200;
+        }
+
+        /* Combo Indicator */
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1.8rem, 10vw, 3rem);
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--primary);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            transform: translateZ(0);
+            text-align: center;
+            padding: 10px;
+        }
+
+        .combo-indicator.active {
+            animation: comboPop 1s ease-out;
+        }
+
+        @keyframes comboPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* Start Game Message */
+        .start-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 3px solid var(--accent);
+            border-radius: 12px;
+            max-width: 500px;
+            margin-bottom: 10px;
+            width: 95%;
+        }
+
+        .start-message h2 {
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-size: clamp(1.2rem, 5vw, 1.6rem);
+        }
+
+        .start-message p {
+            color: var(--secondary);
+            margin-bottom: 6px;
+            line-height: 1.3;
+            font-size: clamp(0.7rem, 3vw, 0.85rem);
+        }
+
+        /* Multiplayer Indicator */
+        .multiplayer-indicator {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            width: 100%;
+            justify-content: space-around;
+        }
+
+        .player-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .player-label {
+            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            color: var(--secondary);
+            margin-bottom: 3px;
+        }
+
+        .player-score {
+            font-size: clamp(0.8rem, 4vw, 1rem);
+            color: var(--accent);
+        }
+
+        .player-indicator.active .player-label {
+            color: var(--accent);
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .player-indicator.player1 .player-label::before {
+            content: "👤 ";
+        }
+
+        .player-indicator.player2 .player-label::before {
+            content: "👤 ";
+        }
+
+        /* Options Screen */
+        #options-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .options-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .options-title {
+            color: var(--accent);
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .option-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .option-title {
+            color: var(--accent);
+            font-size: clamp(0.9rem, 4vw, 1.2rem);
+            margin-bottom: 12px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            background: linear-gradient(135deg, #3366ff, #0033cc);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: clamp(0.7rem, 3vw, 0.9rem);
+            cursor: pointer;
+            border-radius: 6px;
+            border: 2px solid var(--accent);
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 30%;
+            min-height: 50px;
+            touch-action: manipulation;
+        }
+
+        .option-btn.active {
+            background: linear-gradient(135deg, var(--primary), #cc00cc);
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        .option-btn:active:not(.active) {
+            background: linear-gradient(135deg, #5588ff, #0044dd);
+        }
+
+        /* Achievements Screen */
+        #achievements-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .achievements-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            max-height: 80vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .achievements-title {
+            color: var(--accent);
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .achievement {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            transition: all 0.3s;
+        }
+
+        .achievement.earned {
+            border-left-color: var(--success);
+            background: rgba(0, 255, 0, 0.15);
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+        }
+
+        .achievement.earned .achievement-name {
+            color: var(--success);
+        }
+
+        .achievement-desc {
+            font-size: clamp(0.6rem, 2.5vw, 0.7rem);
+            color: #ccc;
+        }
+
+        /* Statistics Screen */
+        #statistics-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .stats-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .stats-title {
+            color: var(--accent);
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .stat-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(3px);
+        }
+
+        .stat-name {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+        }
+
+        .stat-value {
+            font-size: clamp(0.9rem, 4vw, 1.1rem);
+            color: var(--secondary);
+        }
+
+        /* Collection Screen */
+        #collection-screen {
+            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            justify-content: flex-start;
+            padding-top: 20px;
+        }
+
+        .collection-container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .collection-title {
+            color: var(--accent);
+            font-size: clamp(1.5rem, 7vw, 2.2rem);
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        .card-collection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .collection-card {
+            width: clamp(60px, 18vw, 80px);
+            height: clamp(75px, 22vw, 100px);
+            background: linear-gradient(135deg, var(--primary), #cc00cc);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 0 #cc00cc;
+            touch-action: manipulation;
+        }
+
+        .collection-card:active {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 0 #cc00cc;
+        }
+
+        .collection-card.locked {
+            background: linear-gradient(135deg, #555, #333);
+            filter: grayscale(1);
+            box-shadow: 0 3px 0 #333;
+        }
+
+        .collection-card.locked:active {
+            transform: none;
+            box-shadow: 0 3px 0 #333;
+        }
+
+        .collection-card-icon {
+            font-size: clamp(1.2rem, 6vw, 1.8rem);
+            margin-bottom: 6px;
+        }
+
+        .collection-card-name {
+            font-size: clamp(0.5rem, 2.5vw, 0.6rem);
+            text-align: center;
+            padding: 0 2px;
+        }
+
+        /* Particle Effects - Reduced for mobile */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: particleFloat 1s ease-out forwards;
+            transform: translateZ(0);
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--tx, 0), var(--ty, -30px)) scale(0);
+            }
+        }
+
+        /* Audio Controls */
+        .audio-controls {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .audio-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            touch-action: manipulation;
+        }
+
+        .audio-btn:active {
+            background: rgba(255, 204, 0, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Win Animation */
+        .win-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            padding: 20px;
+        }
+
+        .win-animation.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .win-content {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 95%;
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .win-title {
+            color: var(--accent);
+            font-size: clamp(1.5rem, 8vw, 2.5rem);
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        .win-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .win-stat {
+            display: flex;
+            justify-content: space-between;
+            font-size: clamp(0.7rem, 3.5vw, 0.9rem);
+        }
+
+        .win-stat-label {
+            color: var(--secondary);
+        }
+
+        .win-stat-value {
+            color: var(--accent);
+        }
+
+        /* Loading Indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--accent);
+            font-size: 1rem;
+        }
+
+        /* Landscape orientation adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #home-screen {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                justify-content: flex-start;
+            }
+            
+            .main-title {
+                margin-bottom: 10px;
+                font-size: 1.8rem;
+            }
+            
+            .main-menu {
+                margin-top: 10px;
+                gap: 8px;
+            }
+            
+            .menu-btn {
+                padding: 10px 15px;
+                min-height: 45px;
+            }
+            
+            .game-header {
+                margin-bottom: 8px;
+                padding: 8px;
+            }
+            
+            .game-info {
+                margin-bottom: 6px;
+                padding: 6px;
+            }
+            
+            .card {
+                height: 60px;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 350px) {
+            .section {
+                padding: 8px;
+            }
+            
+            .game-board {
+                gap: 5px;
+            }
+            
+            .card {
+                height: 65px;
+            }
+            
+            .menu-btn, .control-btn, .option-btn {
+                min-height: 50px;
+            }
+            
+            .power-btn {
+                min-height: 35px;
+            }
+        }
+
+        /* Prevent zoom on input focus for iOS */
+        @media screen and (max-width: 768px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" id="loading-indicator">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">LOADING...</div>
+    </div>
+
+    <div class="dynamic-bg" id="dynamic-bg"></div>
+    
+    <!-- Audio Controls -->
+    <div class="audio-controls">
+        <button class="audio-btn" id="music-toggle" title="Toggle Music">🎵</button>
+        <button class="audio-btn" id="sound-toggle" title="Toggle Sound Effects">🔊</button>
+    </div>
+    
+    <!-- Home Screen -->
+    <section id="home-screen" class="section active">
+        <h1 class="main-title">RETRO CARD MATCH</h1>
+        <p style="color: var(--secondary); margin-bottom: 20px; font-size: clamp(0.8rem, 4vw, 1.1rem);">Match pairs of cards to win!</p>
+        
+        <div class="main-menu">
+            <button class="menu-btn" data-target="game-screen">PLAY GAME</button>
+            <button class="menu-btn" data-target="options-screen">OPTIONS</button>
+            <button class="menu-btn" data-target="achievements-screen">ACHIEVEMENTS</button>
+            <button class="menu-btn" data-target="statistics-screen">STATISTICS</button>
+            <button class="menu-btn" data-target="collection-screen">CARD COLLECTION</button>
+        </div>
+    </section>
+    
+    <!-- Game Screen -->
+    <section id="game-screen" class="section">
+        <div class="game-header">
+            <h2 class="game-title">RETRO CARD MATCH</h2>
+            <button class="back-btn" data-target="home-screen">BACK TO MENU</button>
+        </div>
+        
+        <div class="game-info">
+            <div class="info-item">
+                <div class="info-label">MOVES</div>
+                <div class="info-value" id="moves">0</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">TIME</div>
+                <div class="info-value" id="timer">0s</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">MATCHES</div>
+                <div class="info-value" id="matches">0/8</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">SCORE</div>
+                <div class="info-value" id="score">0</div>
+            </div>
+        </div>
+        
+        <!-- Multiplayer Indicator -->
+        <div class="multiplayer-indicator" id="multiplayer-indicator" style="display: none;">
+            <div class="player-indicator player1" id="player1-indicator">
+                <div class="player-label">PLAYER 1</div>
+                <div class="player-score" id="player1-score">0</div>
+            </div>
+            <div class="player-indicator player2" id="player2-indicator">
+                <div class="player-label">PLAYER 2</div>
+                <div class="player-score" id="player2-score">0</div>
+            </div>
+        </div>
+        
+        <!-- Enhanced UI Elements -->
+        <div class="enhanced-ui">
+            <div class="combo-display">
+                <div class="combo-count">Combo: <span id="combo">0</span>x</div>
+                <div class="multiplier">Multiplier: <span id="multiplier">1</span>x</div>
+            </div>
+            
+            <div class="power-ups">
+                <button class="power-btn" id="hint-btn" title="Hint (3 remaining)">
+                    💡 Hint
+                </button>
+                <button class="power-btn" id="shuffle-btn" title="Shuffle (2 remaining)">
+                    🔄 Shuffle
+                </button>
+                <button class="power-btn" id="freeze-btn" title="Freeze Time (1 remaining)">
+                    ⏸️ Freeze
+                </button>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div class="start-message" id="start-message">
+            <h2>READY TO PLAY?</h2>
+            <p>Tap the "START GAME" button to begin matching cards!</p>
+            <p>Match all pairs to win!</p>
+        </div>
+        
+        <div class="game-board" id="game-board"></div>
+        
+        <div class="game-controls">
+            <button class="control-btn" id="start-btn">START GAME</button>
+            <button class="control-btn" id="reset-btn">RESET GAME</button>
+            <button class="control-btn" id="multiplayer-btn">MULTIPLAYER: OFF</button>
+        </div>
+    </section>
+    
+    <!-- Options Screen -->
+    <section id="options-screen" class="section">
+        <div class="options-container">
+            <h2 class="options-title">GAME OPTIONS</h2>
+            
+            <div class="option-group">
+                <h3 class="option-title">DIFFICULTY</h3>
+                <div class="option-buttons">
+                    <button class="option-btn active" data-option="difficulty" data-value="easy">EASY (3×4)</button>
+                    <button class="option-btn" data-option="difficulty" data-value="normal">NORMAL (4×4)</button>
+                    <button class="option-btn" data-option="difficulty" data-value="hard">HARD (6×6)</button>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <h3 class="option-title">THEME</h3>
+                <div class="option-buttons">
+                    <button class="option-btn active" data-option="theme" data-value="retro">RETRO ARCADE</button>
+                    <button class="option-btn" data-option="theme" data-value="fantasy">FANTASY REALM</button>
+                    <button class="option-btn" data-option="theme" data-value="space">SPACE EXPLORER</button>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <h3 class="option-title">AUDIO</h3>
+                <div class="option-buttons">
+                    <button class="option-btn active" data-option="music" data-value="on">MUSIC: ON</button>
+                    <button class="option-btn active" data-option="sound" data-value="on">SOUND: ON</button>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <h3 class="option-title">ACCESSIBILITY</h3>
+                <div class="option-buttons">
+                    <button class="option-btn" data-option="colorblind" data-value="off">COLORBLIND: OFF</button>
+                    <button class="option-btn" data-option="high-contrast" data-value="off">HIGH CONTRAST: OFF</button>
+                </div>
+            </div>
+            
+            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+        </div>
+    </section>
+    
+    <!-- Achievements Screen -->
+    <section id="achievements-screen" class="section">
+        <div class="achievements-container">
+            <h2 class="achievements-title">ACHIEVEMENTS</h2>
+            <div id="achievements-list"></div>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+        </div>
+    </section>
+    
+    <!-- Statistics Screen -->
+    <section id="statistics-screen" class="section">
+        <div class="stats-container">
+            <h2 class="stats-title">GAME STATISTICS</h2>
+            <div id="stats-list"></div>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+        </div>
+    </section>
+    
+    <!-- Collection Screen -->
+    <section id="collection-screen" class="section">
+        <div class="collection-container">
+            <h2 class="collection-title">CARD COLLECTION</h2>
+            <div class="card-collection" id="card-collection"></div>
+            <button class="back-btn" data-target="home-screen" style="margin-top: 20px; width: 100%;">BACK TO MENU</button>
+        </div>
+    </section>
+
+    <!-- Combo Indicator -->
+    <div class="combo-indicator" id="combo-indicator"></div>
+
+    <!-- Win Animation -->
+    <div class="win-animation" id="win-animation">
+        <div class="win-content">
+            <h2 class="win-title" id="win-title">VICTORY!</h2>
+            <div class="win-stats" id="win-stats">
+                <!-- Stats will be populated here -->
+            </div>
+            <button class="control-btn" id="continue-btn">CONTINUE</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            cards: [],
+            flippedCards: [],
+            matchedPairs: 0,
+            moves: 0,
+            timer: 0,
+            timerInterval: null,
+            gameStarted: false,
+            musicOn: true,
+            soundOn: true,
+            score: 0,
+            currentLevel: 1,
+            totalPairs: 8,
+            isMultiplayer: false,
+            currentDifficulty: 'normal',
+            currentTheme: 'retro',
+            playerScores: [0, 0],
+            currentPlayer: 0,
+            // Mobile-specific state
+            touchEnabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0
+        };
+
+        // Enhanced game state
+        const enhancedState = {
+            currentCombo: 0,
+            maxCombo: 0,
+            streakMultiplier: 1,
+            lastMatchTime: 0,
+            consecutiveMatches: 0,
+            powerUps: {
+                hint: 3,
+                shuffle: 2,
+                freeze: 1
+            },
+            freezeTimeActive: false,
+            freezeTimeRemaining: 0
+        };
+
+        // Difficulty settings - adjusted for mobile
+        const difficultySettings = {
+            easy: { rows: 3, cols: 4 },   // 12 cards, 6 pairs
+            normal: { rows: 4, cols: 4 }, // 16 cards, 8 pairs
+            hard: { rows: 4, cols: 5 }    // 20 cards, 10 pairs (reduced from 6x6 for mobile)
+        };
+
+        // Themes
+        const themes = {
+            retro: {
+                name: "RETRO ARCADE",
+                symbols: ['👾', '🕹️', '🎮', '🚀', '👻', '⭐', '💎', '🔺', '🔷', '🟥']
+            },
+            fantasy: {
+                name: "FANTASY REALM", 
+                symbols: ['🐉', '⚔️', '🛡️', '🏰', '👑', '💍', '🧙', '🧝', '🐲', '🗡️']
+            },
+            space: {
+                name: "SPACE EXPLORER",
+                symbols: ['🪐', '🚀', '👽', '⭐', '🌙', '🛸', '☄️', '🌌', '🛰️', '🌠']
+            }
+        };
+
+        // Achievements
+        const achievements = [
+            { id: 'first_win', name: 'First Victory', desc: 'Win your first game', earned: false, icon: '🏆' },
+            { id: 'speed_demon', name: 'Speed Demon', desc: 'Complete game under 60 seconds', earned: false, icon: '⚡' },
+            { id: 'perfect_game', name: 'Perfect Memory', desc: 'Win with less than 5 extra moves', earned: false, icon: '💯' },
+            { id: 'combo_master', name: 'Combo Master', desc: 'Match 5 pairs in a row', earned: false, icon: '🔗' },
+            { id: 'night_owl', name: 'Night Owl', desc: 'Play 10 games', earned: false, icon: '🦉' }
+        ];
+
+        // Card Collection
+        const cardCollection = [
+            { id: 1, name: "Golden Card", icon: "🌟", description: "Earned by scoring over 2000 points", unlocked: false },
+            { id: 2, name: "Time Warp Card", icon: "⏰", description: "Complete a game in under 60 seconds", unlocked: false },
+            { id: 3, name: "Combo Card", icon: "🔗", description: "Achieve a 5x combo", unlocked: false },
+            { id: 4, name: "Perfect Card", icon: "💯", description: "Win with no mismatches", unlocked: false },
+            { id: 5, name: "Multiplayer Card", icon: "👥", description: "Win 3 multiplayer games", unlocked: false }
+        ];
+
+        // Statistics
+        const gameStats = {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            totalMoves: 0,
+            totalTime: 0,
+            highestScore: 0,
+            highestCombo: 0,
+            powerupsUsed: 0,
+            cardsCollected: 0
+        };
+
+        // Enhanced Sound Manager with mobile optimizations
+        const soundManager = {
+            audioContext: null,
+            masterGain: null,
+            musicGain: null,
+            sfxGain: null,
+            musicOscillator: null,
+            musicPlaying: false,
+            initialized: false,
+            
+            init() {
+                if (this.initialized) return;
+                
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.audioContext.createGain();
+                    this.musicGain = this.audioContext.createGain();
+                    this.sfxGain = this.audioContext.createGain();
+                    
+                    this.musicGain.connect(this.masterGain);
+                    this.sfxGain.connect(this.masterGain);
+                    this.masterGain.connect(this.audioContext.destination);
+                    
+                    this.masterGain.gain.value = 0.6;
+                    this.musicGain.gain.value = 0.3;
+                    this.sfxGain.gain.value = 0.5;
+                    
+                    this.initialized = true;
+                    console.log("Audio system initialized successfully");
+                } catch (e) {
+                    console.error("Audio context not supported:", e);
+                    this.initialized = false;
+                }
+            },
+            
+            // Resume audio context on user interaction (required for mobile)
+            resumeAudio() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            },
+            
+            playMusic(track = 'main') {
+                if (!this.initialized || !gameState.musicOn) return;
+                
+                this.resumeAudio();
+                
+                // Stop any existing music
+                this.stopMusic();
+                
+                // Create oscillator for retro-style music
+                this.musicOscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                this.musicOscillator.connect(gainNode);
+                gainNode.connect(this.musicGain);
+                
+                // Different music patterns based on track
+                if (track === 'main') {
+                    this.musicOscillator.type = 'sine';
+                    this.musicOscillator.frequency.setValueAtTime(220, this.audioContext.currentTime);
+                    
+                    // Create a simple chiptune melody
+                    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
+                    let time = this.audioContext.currentTime;
+                    
+                    notes.forEach((note, index) => {
+                        this.musicOscillator.frequency.setValueAtTime(note, time);
+                        time += 0.4;
+                    });
+                    
+                    // Loop the melody
+                    this.musicOscillator.frequency.setValueAtTime(notes[0], time);
+                } else if (track === 'game') {
+                    this.musicOscillator.type = 'triangle';
+                    this.musicOscillator.frequency.setValueAtTime(196.00, this.audioContext.currentTime);
+                    
+                    // Pulsing effect for game music
+                    const pulseTime = 0.8;
+                    let currentTime = this.audioContext.currentTime;
+                    
+                    for (let i = 0; i < 16; i++) {
+                        gainNode.gain.setValueAtTime(0.2, currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.05, currentTime + pulseTime);
+                        currentTime += pulseTime;
+                    }
+                }
+                
+                this.musicOscillator.start();
+                this.musicPlaying = true;
+            },
+            
+            stopMusic() {
+                if (this.musicOscillator) {
+                    this.musicOscillator.stop();
+                    this.musicOscillator = null;
+                    this.musicPlaying = false;
+                }
+            },
+            
+            toggleMusic() {
+                gameState.musicOn = !gameState.musicOn;
+                if (gameState.musicOn) {
+                    this.playMusic('main');
+                } else {
+                    this.stopMusic();
+                }
+                return gameState.musicOn;
+            },
+            
+            toggleSound() {
+                gameState.soundOn = !gameState.soundOn;
+                return gameState.soundOn;
+            },
+            
+            // Sound effects
+            playTone(frequency, duration, type = 'sine', volume = 0.2) {
+                if (!this.initialized || !gameState.soundOn) return;
+                
+                this.resumeAudio();
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.sfxGain);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = type;
+                    
+                    gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+                    
+                    oscillator.start(this.audioContext.currentTime);
+                    oscillator.stop(this.audioContext.currentTime + duration);
+                } catch (e) {
+                    console.log('Audio error:', e);
+                }
+            },
+            
+            playFlip() {
+                this.playTone(523.25, 0.15, 'sine');
+                setTimeout(() => this.playTone(659.25, 0.12, 'sine'), 80);
+            },
+            
+            playMatch() {
+                this.playTone(659.25, 0.4, 'sine');
+                setTimeout(() => this.playTone(783.99, 0.4, 'sine'), 150);
+                setTimeout(() => this.playTone(1046.50, 0.5, 'sine'), 300);
+            },
+            
+            playMismatch() {
+                this.playTone(220, 0.3, 'sine');
+                setTimeout(() => this.playTone(196, 0.4, 'sine'), 200);
+                setTimeout(() => this.playTone(174.61, 0.3, 'sine'), 400);
+            },
+            
+            playCombo(comboLevel) {
+                const baseFreq = 440 + (comboLevel * 30);
+                this.playTone(baseFreq, 0.5, 'sine');
+                setTimeout(() => this.playTone(baseFreq + 60, 0.4, 'sine'), 250);
+                setTimeout(() => this.playTone(baseFreq + 120, 0.3, 'sine'), 500);
+            },
+            
+            playWin() {
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.5, 'sine', 0.4), i * 200);
+                });
+            },
+            
+            playPowerUp(type) {
+                let frequencies;
+                
+                switch(type) {
+                    case 'hint':
+                        frequencies = [523.25, 659.25, 783.99];
+                        break;
+                    case 'shuffle':
+                        frequencies = [392.00, 493.88, 587.33];
+                        break;
+                    case 'freeze':
+                        frequencies = [261.63, 329.63, 392.00];
+                        break;
+                    default:
+                        frequencies = [440, 554.37, 659.25];
+                }
+                
+                frequencies.forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.4, 'sine'), i * 150);
+                });
+            },
+            
+            playButtonClick() {
+                this.playTone(330, 0.15, 'sine');
+            },
+            
+            playMenuTransition() {
+                this.playTone(659.25, 0.3, 'sine');
+                setTimeout(() => this.playTone(523.25, 0.3, 'sine'), 150);
+            },
+            
+            playAchievement() {
+                const notes = [1046.50, 1174.66, 1318.51, 1396.91, 1567.98];
+                notes.forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.5), i * 150);
+                });
+            }
+        };
+
+        // DOM Elements
+        const elements = {
+            sections: document.querySelectorAll('.section'),
+            homeScreen: document.getElementById('home-screen'),
+            gameScreen: document.getElementById('game-screen'),
+            optionsScreen: document.getElementById('options-screen'),
+            achievementsScreen: document.getElementById('achievements-screen'),
+            statisticsScreen: document.getElementById('statistics-screen'),
+            collectionScreen: document.getElementById('collection-screen'),
+            gameBoard: document.getElementById('game-board'),
+            movesDisplay: document.getElementById('moves'),
+            timerDisplay: document.getElementById('timer'),
+            matchesDisplay: document.getElementById('matches'),
+            scoreDisplay: document.getElementById('score'),
+            startBtn: document.getElementById('start-btn'),
+            resetBtn: document.getElementById('reset-btn'),
+            multiplayerBtn: document.getElementById('multiplayer-btn'),
+            startMessage: document.getElementById('start-message'),
+            comboDisplay: document.getElementById('combo'),
+            multiplierDisplay: document.getElementById('multiplier'),
+            progressFill: document.getElementById('progress-fill'),
+            comboIndicator: document.getElementById('combo-indicator'),
+            hintBtn: document.getElementById('hint-btn'),
+            shuffleBtn: document.getElementById('shuffle-btn'),
+            freezeBtn: document.getElementById('freeze-btn'),
+            achievementsList: document.getElementById('achievements-list'),
+            statsList: document.getElementById('stats-list'),
+            cardCollectionContainer: document.getElementById('card-collection'),
+            musicToggle: document.getElementById('music-toggle'),
+            soundToggle: document.getElementById('sound-toggle'),
+            loadingIndicator: document.getElementById('loading-indicator'),
+            winAnimation: document.getElementById('win-animation'),
+            winStats: document.getElementById('win-stats'),
+            winTitle: document.getElementById('win-title'),
+            continueBtn: document.getElementById('continue-btn'),
+            multiplayerIndicator: document.getElementById('multiplayer-indicator'),
+            player1Indicator: document.getElementById('player1-indicator'),
+            player2Indicator: document.getElementById('player2-indicator'),
+            player1Score: document.getElementById('player1-score'),
+            player2Score: document.getElementById('player2-score')
+        };
+
+        // Initialize the game
+        function initGame() {
+            console.log("Initializing game...");
+            
+            // Set up mobile-specific optimizations
+            setupMobileOptimizations();
+            
+            // Hide loading indicator after a short delay
+            setTimeout(() => {
+                elements.loadingIndicator.style.opacity = '0';
+                setTimeout(() => {
+                    elements.loadingIndicator.style.display = 'none';
+                    document.body.classList.add('loaded');
+                }, 500);
+            }, 1000);
+            
+            // Initialize audio system
+            soundManager.init();
+            
+            // Set up navigation
+            setupNavigation();
+            
+            // Initialize game screens
+            initGameScreen();
+            initOptionsScreen();
+            initAchievementsScreen();
+            initStatisticsScreen();
+            initCollectionScreen();
+            
+            // Initialize the game board
+            resetGame();
+            
+            // Start background music
+            if (gameState.musicOn) {
+                soundManager.playMusic('main');
+            }
+            
+            console.log("Game initialized successfully!");
+        }
+
+        // Set up mobile-specific optimizations
+        function setupMobileOptimizations() {
+            // Prevent default touch behaviors that could interfere with gameplay
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            document.addEventListener('touchend', function(e) {
+                if (e.touches.length > 0) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+            
+            // Prevent context menu on long press
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', function() {
+                // Brief delay to allow orientation to complete
+                setTimeout(function() {
+                    // Refresh the game board layout if needed
+                    if (gameState.gameStarted) {
+                        elements.gameBoard.style.display = 'none';
+                        void elements.gameBoard.offsetWidth; // Trigger reflow
+                        elements.gameBoard.style.display = 'grid';
+                    }
+                }, 300);
+            });
+        }
+
+        // Set up navigation between sections
+        function setupNavigation() {
+            // Menu buttons
+            const menuButtons = document.querySelectorAll('.menu-btn');
+            menuButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    // Resume audio on user interaction (required for iOS)
+                    soundManager.resumeAudio();
+                    
+                    const target = button.getAttribute('data-target');
+                    soundManager.playMenuTransition();
+                    showSection(target);
+                });
+            });
+            
+            // Back buttons
+            const backButtons = document.querySelectorAll('.back-btn');
+            backButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    soundManager.resumeAudio();
+                    const target = button.getAttribute('data-target');
+                    soundManager.playMenuTransition();
+                    showSection(target);
+                });
+            });
+            
+            // Audio control buttons
+            elements.musicToggle.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                const isOn = soundManager.toggleMusic();
+                elements.musicToggle.textContent = isOn ? '🎵' : '🔇';
+                soundManager.playButtonClick();
+            });
+            
+            elements.soundToggle.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                const isOn = soundManager.toggleSound();
+                elements.soundToggle.textContent = isOn ? '🔊' : '🔇';
+                soundManager.playButtonClick();
+            });
+            
+            // Continue button for win screen
+            elements.continueBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                elements.winAnimation.classList.remove('active');
+                soundManager.playButtonClick();
+            });
+        }
+
+        // Show a specific section and hide others
+        function showSection(sectionId) {
+            elements.sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                
+                // If showing game screen, initialize it
+                if (sectionId === 'game-screen') {
+                    resetGame();
+                    // Change music when entering game screen
+                    if (gameState.musicOn) {
+                        soundManager.playMusic('game');
+                    }
+                } else {
+                    // Return to main music when not in game
+                    if (gameState.musicOn && !soundManager.musicPlaying) {
+                        soundManager.playMusic('main');
+                    }
+                }
+                
+                // Update specific screens when shown
+                if (sectionId === 'achievements-screen') {
+                    updateAchievementsDisplay();
+                } else if (sectionId === 'statistics-screen') {
+                    updateStatsDisplay();
+                } else if (sectionId === 'collection-screen') {
+                    updateCardCollectionDisplay();
+                }
+            }
+        }
+
+        // Initialize game screen
+        function initGameScreen() {
+            // Set up game controls
+            elements.startBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                soundManager.playButtonClick();
+                if (gameState.gameStarted) {
+                    // If game is already started, reset it
+                    resetGame();
+                } else {
+                    // Otherwise, start the game
+                    startGame();
+                }
+            });
+            
+            elements.resetBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                soundManager.playButtonClick();
+                resetGame();
+            });
+            
+            elements.multiplayerBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                soundManager.playButtonClick();
+                toggleMultiplayer();
+            });
+            
+            // Set up power-up buttons
+            elements.hintBtn.addEventListener('click', useHint);
+            elements.shuffleBtn.addEventListener('click', useShuffle);
+            elements.freezeBtn.addEventListener('click', useFreeze);
+            
+            // Update power-up button states
+            updatePowerUpButtons();
+        }
+
+        // Initialize options screen
+        function initOptionsScreen() {
+            const optionButtons = document.querySelectorAll('.option-btn');
+            
+            optionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    soundManager.resumeAudio();
+                    const option = button.getAttribute('data-option');
+                    const value = button.getAttribute('data-value');
+                    
+                    soundManager.playButtonClick();
+                    
+                    // Handle different option types
+                    switch(option) {
+                        case 'difficulty':
+                            setDifficulty(value);
+                            break;
+                        case 'theme':
+                            setTheme(value);
+                            break;
+                        case 'music':
+                            toggleMusic();
+                            break;
+                        case 'sound':
+                            toggleSound();
+                            break;
+                        case 'colorblind':
+                            toggleColorblind();
+                            break;
+                        case 'high-contrast':
+                            toggleHighContrast();
+                            break;
+                    }
+                    
+                    // Update button states
+                    updateOptionButtons(option, value, button);
+                });
+            });
+        }
+
+        // Initialize achievements screen
+        function initAchievementsScreen() {
+            updateAchievementsDisplay();
+        }
+
+        // Initialize statistics screen
+        function initStatisticsScreen() {
+            updateStatsDisplay();
+        }
+
+        // Initialize collection screen
+        function initCollectionScreen() {
+            updateCardCollectionDisplay();
+        }
+
+        // Set game difficulty
+        function setDifficulty(difficulty) {
+            gameState.currentDifficulty = difficulty;
+            resetGame();
+        }
+
+        // Set game theme
+        function setTheme(theme) {
+            gameState.currentTheme = theme;
+            resetGame();
+        }
+
+        // Toggle music
+        function toggleMusic() {
+            gameState.musicOn = !gameState.musicOn;
+            
+            if (gameState.musicOn) {
+                soundManager.playMusic('main');
+            } else {
+                soundManager.stopMusic();
+            }
+        }
+
+        // Toggle sound
+        function toggleSound() {
+            gameState.soundOn = !gameState.soundOn;
+        }
+
+        // Toggle colorblind mode
+        function toggleColorblind() {
+            document.body.classList.toggle('colorblind-mode');
+        }
+
+        // Toggle high contrast mode
+        function toggleHighContrast() {
+            document.body.classList.toggle('high-contrast-mode');
+        }
+
+        // Update option buttons to reflect current selection
+        function updateOptionButtons(option, value, clickedButton) {
+            const buttons = document.querySelectorAll(`[data-option="${option}"]`);
+            
+            // For non-toggle options, update active state
+            if (!['music', 'sound', 'colorblind', 'high-contrast'].includes(option)) {
+                buttons.forEach(button => {
+                    button.classList.remove('active');
+                });
+                clickedButton.classList.add('active');
+            }
+            
+            // Update button text for toggles
+            if (option === 'music') {
+                clickedButton.textContent = `MUSIC: ${value === 'on' ? 'OFF' : 'ON'}`;
+                clickedButton.setAttribute('data-value', value === 'on' ? 'off' : 'on');
+            } else if (option === 'sound') {
+                clickedButton.textContent = `SOUND: ${value === 'on' ? 'OFF' : 'ON'}`;
+                clickedButton.setAttribute('data-value', value === 'on' ? 'off' : 'on');
+            } else if (option === 'colorblind') {
+                const isEnabled = document.body.classList.contains('colorblind-mode');
+                clickedButton.textContent = `COLORBLIND: ${isEnabled ? 'ON' : 'OFF'}`;
+                clickedButton.setAttribute('data-value', isEnabled ? 'on' : 'off');
+            } else if (option === 'high-contrast') {
+                const isEnabled = document.body.classList.contains('high-contrast-mode');
+                clickedButton.textContent = `HIGH CONTRAST: ${isEnabled ? 'ON' : 'OFF'}`;
+                clickedButton.setAttribute('data-value', isEnabled ? 'on' : 'off');
+            }
+        }
+
+        // Enhanced scoring system
+        function calculateScore(isMatch) {
+            let baseScore = 100;
+            
+            if (isMatch) {
+                // Combo bonus
+                enhancedState.currentCombo++;
+                enhancedState.maxCombo = Math.max(enhancedState.maxCombo, enhancedState.currentCombo);
+                
+                // Time bonus (faster matches = more points)
+                const timeBonus = Math.max(0, 50 - Math.floor(gameState.timer / 10));
+                
+                // Combo multiplier
+                const comboMultiplier = 1 + (enhancedState.currentCombo * 0.1);
+                
+                // Update multiplier display
+                enhancedState.streakMultiplier = comboMultiplier;
+                elements.multiplierDisplay.textContent = comboMultiplier.toFixed(1);
+                
+                // Show combo indicator for high combos
+                if (enhancedState.currentCombo >= 3) {
+                    showComboIndicator(enhancedState.currentCombo);
+                    soundManager.playCombo(enhancedState.currentCombo);
+                }
+                
+                return Math.floor((baseScore + timeBonus) * comboMultiplier);
+            } else {
+                // Reset combo on mismatch
+                enhancedState.currentCombo = 0;
+                enhancedState.streakMultiplier = 1;
+                elements.multiplierDisplay.textContent = "1";
+                return 0;
+            }
+        }
+
+        // Show combo indicator
+        function showComboIndicator(comboLevel) {
+            const messages = [
+                "", "", "",
+                "COMBO!",
+                "GREAT!",
+                "AMAZING!",
+                "INCREDIBLE!",
+                "LEGENDARY!"
+            ];
+            
+            const message = messages[Math.min(comboLevel, messages.length - 1)] || "UNBELIEVABLE!";
+            elements.comboIndicator.textContent = `${message} ${comboLevel}x COMBO!`;
+            elements.comboIndicator.classList.remove('active');
+            void elements.comboIndicator.offsetWidth; // Trigger reflow
+            elements.comboIndicator.classList.add('active');
+        }
+
+        // Power-up: Hint
+        function useHint() {
+            if (enhancedState.powerUps.hint > 0 && gameState.gameStarted) {
+                soundManager.resumeAudio();
+                soundManager.playPowerUp('hint');
+                
+                const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched)'));
+                const unflipped = unmatchedCards.filter(card => !card.classList.contains('flipped'));
+                
+                if (unflipped.length >= 2) {
+                    // Find a matching pair
+                    const symbols = {};
+                    let matchFound = false;
+                    
+                    for (const card of unflipped) {
+                        const symbol = card.dataset.symbol;
+                        if (symbols[symbol]) {
+                            // Found a match - highlight these cards
+                            highlightCards([symbols[symbol], card]);
+                            enhancedState.powerUps.hint--;
+                            updatePowerUpButtons();
+                            matchFound = true;
+                            break;
+                        }
+                        symbols[symbol] = card;
+                    }
+                    
+                    if (!matchFound) {
+                        // Simple alert for mobile - could be replaced with a custom modal
+                        setTimeout(() => alert("No matches available to hint!"), 100);
+                    }
+                } else {
+                    setTimeout(() => alert("Not enough cards left to use hint!"), 100);
+                }
+            }
+        }
+
+        // Highlight cards with a glow effect
+        function highlightCards(cards) {
+            cards.forEach(card => {
+                card.style.boxShadow = '0 0 15px var(--accent)';
+                setTimeout(() => {
+                    card.style.boxShadow = '';
+                }, 2000);
+            });
+        }
+
+        // Power-up: Shuffle
+        function useShuffle() {
+            if (enhancedState.powerUps.shuffle > 0 && gameState.gameStarted) {
+                soundManager.resumeAudio();
+                soundManager.playPowerUp('shuffle');
+                
+                // Only shuffle unmatched cards
+                const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched)'));
+                const indices = unmatchedCards.map(card => parseInt(card.dataset.index));
+                const symbols = unmatchedCards.map(card => card.dataset.symbol);
+                
+                // Shuffle the symbols
+                for (let i = symbols.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
+                }
+                
+                // Update the cards with new symbols
+                unmatchedCards.forEach((card, i) => {
+                    card.dataset.symbol = symbols[i];
+                    const cardFront = card.querySelector('.card-front');
+                    cardFront.textContent = symbols[i];
+                });
+                
+                enhancedState.powerUps.shuffle--;
+                updatePowerUpButtons();
+                
+                // Visual feedback
+                elements.gameBoard.style.animation = 'none';
+                void elements.gameBoard.offsetWidth; // Trigger reflow
+                elements.gameBoard.style.animation = 'shuffleEffect 0.5s';
+            }
+        }
+
+        // Power-up: Freeze Time
+        function useFreeze() {
+            if (enhancedState.powerUps.freeze > 0 && gameState.gameStarted && !enhancedState.freezeTimeActive) {
+                soundManager.resumeAudio();
+                soundManager.playPowerUp('freeze');
+                
+                enhancedState.freezeTimeActive = true;
+                enhancedState.freezeTimeRemaining = 10; // 10 seconds
+                enhancedState.powerUps.freeze--;
+                updatePowerUpButtons();
+                
+                // Visual feedback
+                document.body.style.filter = 'hue-rotate(180deg)';
+                setTimeout(() => {
+                    document.body.style.filter = '';
+                }, 500);
+                
+                // Count down freeze time
+                const freezeInterval = setInterval(() => {
+                    enhancedState.freezeTimeRemaining--;
+                    
+                    if (enhancedState.freezeTimeRemaining <= 0) {
+                        enhancedState.freezeTimeActive = false;
+                        clearInterval(freezeInterval);
+                    }
+                }, 1000);
+            }
+        }
+
+        // Update power-up button states
+        function updatePowerUpButtons() {
+            elements.hintBtn.textContent = `💡 Hint (${enhancedState.powerUps.hint})`;
+            elements.shuffleBtn.textContent = `🔄 Shuffle (${enhancedState.powerUps.shuffle})`;
+            elements.freezeBtn.textContent = `⏸️ Freeze (${enhancedState.powerUps.freeze})`;
+            
+            elements.hintBtn.disabled = enhancedState.powerUps.hint <= 0;
+            elements.shuffleBtn.disabled = enhancedState.powerUps.shuffle <= 0;
+            elements.freezeBtn.disabled = enhancedState.powerUps.freeze <= 0 || enhancedState.freezeTimeActive;
+        }
+
+        // Reset the game
+        function resetGame() {
+            clearInterval(gameState.timerInterval);
+            
+            // Set game board based on difficulty
+            const settings = difficultySettings[gameState.currentDifficulty];
+            elements.gameBoard.className = `game-board ${gameState.currentDifficulty}`;
+            elements.gameBoard.style.gridTemplateColumns = `repeat(${settings.cols}, 1fr)`;
+            gameState.totalPairs = (settings.rows * settings.cols) / 2;
+            
+            // Create card pairs from current theme
+            const themeSymbols = themes[gameState.currentTheme].symbols.slice(0, gameState.totalPairs);
+            gameState.cards = [...themeSymbols, ...themeSymbols];
+            
+            // Shuffle cards
+            shuffleCards();
+            
+            // Clear the game board
+            elements.gameBoard.innerHTML = '';
+            
+            // Create card elements
+            gameState.cards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.symbol = symbol;
+                card.dataset.index = index;
+                
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-front';
+                cardFront.textContent = symbol;
+                
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-back';
+                
+                card.appendChild(cardFront);
+                card.appendChild(cardBack);
+                
+                // Use both click and touch events for maximum compatibility
+                card.addEventListener('click', () => flipCard(card));
+                card.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    flipCard(card);
+                });
+                
+                elements.gameBoard.appendChild(card);
+            });
+            
+            // Reset game state
+            gameState.flippedCards = [];
+            gameState.matchedPairs = 0;
+            gameState.moves = 0;
+            gameState.timer = 0;
+            gameState.score = 0;
+            gameState.gameStarted = false;
+            
+            // Reset enhanced state
+            enhancedState.currentCombo = 0;
+            enhancedState.maxCombo = 0;
+            enhancedState.streakMultiplier = 1;
+            enhancedState.powerUps = {
+                hint: 3,
+                shuffle: 2,
+                freeze: 1
+            };
+            enhancedState.freezeTimeActive = false;
+            enhancedState.freezeTimeRemaining = 0;
+            
+            // Reset multiplayer state
+            gameState.playerScores = [0, 0];
+            gameState.currentPlayer = 0;
+            
+            // Hide the game board and show start message
+            elements.gameBoard.classList.remove('visible');
+            elements.startMessage.style.display = 'flex';
+            
+            // Update displays
+            updateGameDisplay();
+            updatePowerUpButtons();
+            updateMultiplayerDisplay();
+            
+            // Update the start button text
+            elements.startBtn.textContent = 'START GAME';
+            
+            // Reset progress bar
+            elements.progressFill.style.width = '0%';
+        }
+
+        // Shuffle the cards
+        function shuffleCards() {
+            for (let i = gameState.cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [gameState.cards[i], gameState.cards[j]] = [gameState.cards[j], gameState.cards[i]];
+            }
+        }
+
+        // Flip a card
+        function flipCard(card) {
+            if (!gameState.gameStarted || card.classList.contains('flipped') || 
+                gameState.flippedCards.length === 2 || card.classList.contains('matched')) {
+                return;
+            }
+            
+            card.classList.add('flipped');
+            gameState.flippedCards.push(card);
+            soundManager.playFlip();
+            
+            if (gameState.flippedCards.length === 2) {
+                gameState.moves++;
+                updateGameDisplay();
+                
+                setTimeout(checkForMatch, 500);
+            }
+        }
+
+        // Check if the two flipped cards match
+        function checkForMatch() {
+            const [card1, card2] = gameState.flippedCards;
+            const isMatch = card1.dataset.symbol === card2.dataset.symbol;
+            
+            if (isMatch) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                gameState.matchedPairs++;
+                
+                // Calculate and add score
+                const matchScore = calculateScore(true);
+                gameState.score += matchScore;
+                
+                // In multiplayer mode, add score to current player
+                if (gameState.isMultiplayer) {
+                    gameState.playerScores[gameState.currentPlayer] += matchScore;
+                    updateMultiplayerDisplay();
+                }
+                
+                // Create particle effects (reduced for mobile)
+                createParticles(card1);
+                createParticles(card2);
+                
+                soundManager.playMatch();
+                
+                // Update progress bar
+                const progress = (gameState.matchedPairs / gameState.totalPairs) * 100;
+                elements.progressFill.style.width = `${progress}%`;
+                
+                // Check for win
+                if (gameState.matchedPairs === gameState.totalPairs) {
+                    endGame();
+                }
+            } else {
+                card1.classList.add('mismatch');
+                card2.classList.add('mismatch');
+                
+                setTimeout(() => {
+                    card1.classList.remove('flipped', 'mismatch');
+                    card2.classList.remove('flipped', 'mismatch');
+                }, 1000);
+                
+                calculateScore(false); // Reset combo
+                soundManager.playMismatch();
+                
+                // In multiplayer mode, switch player after mismatch
+                if (gameState.isMultiplayer) {
+                    switchPlayer();
+                }
+            }
+            
+            // Update combo display
+            elements.comboDisplay.textContent = enhancedState.currentCombo;
+            
+            gameState.flippedCards = [];
+            
+            updateGameDisplay();
+        }
+
+        // Create particle effects for matches (optimized for mobile)
+        function createParticles(card) {
+            // Reduce particle count for mobile performance
+            if (!gameState.touchEnabled) return;
+            
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            for (let i = 0; i < 5; i++) { // Reduced from 8 to 5
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // Random color based on theme
+                const hue = Math.random() * 360;
+                particle.style.background = `hsl(${hue}, 70%, 60%)`;
+                
+                // Random direction and distance
+                const angle = (i / 5) * Math.PI * 2;
+                const distance = 30 + Math.random() * 40; // Reduced distance
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                particle.style.left = `${centerX}px`;
+                particle.style.top = `${centerY}px`;
+                
+                document.body.appendChild(particle);
+                
+                // Remove particle after animation
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1000);
+            }
+        }
+
+        // Start the game
+        function startGame() {
+            if (gameState.gameStarted) return;
+            
+            gameState.gameStarted = true;
+            gameStats.gamesPlayed++;
+            updateStatsDisplay();
+            
+            // Hide start message and show game board
+            elements.startMessage.style.display = 'none';
+            elements.gameBoard.classList.add('visible');
+            
+            // Update the start button text to "RESTART GAME"
+            elements.startBtn.textContent = 'RESTART GAME';
+            
+            // Start timer (if freeze time is not active)
+            gameState.timerInterval = setInterval(() => {
+                if (!enhancedState.freezeTimeActive) {
+                    gameState.timer++;
+                    elements.timerDisplay.textContent = `${gameState.timer}s`;
+                }
+            }, 1000);
+        }
+
+        // End the game
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            
+            gameStats.gamesWon++;
+            gameStats.totalMoves += gameState.moves;
+            gameStats.totalTime += gameState.timer;
+            if (gameState.score > gameStats.highestScore) gameStats.highestScore = gameState.score;
+            if (enhancedState.maxCombo > gameStats.highestCombo) gameStats.highestCombo = enhancedState.maxCombo;
+            
+            // Check achievements
+            checkAchievements();
+            
+            // Play win sound
+            soundManager.playWin();
+            
+            // Show win animation
+            showWinAnimation();
+        }
+
+        // Show win animation
+        function showWinAnimation() {
+            // Determine winner in multiplayer mode
+            let winnerText = "VICTORY!";
+            if (gameState.isMultiplayer) {
+                if (gameState.playerScores[0] > gameState.playerScores[1]) {
+                    winnerText = "PLAYER 1 WINS!";
+                } else if (gameState.playerScores[1] > gameState.playerScores[0]) {
+                    winnerText = "PLAYER 2 WINS!";
+                } else {
+                    winnerText = "IT'S A TIE!";
+                }
+            }
+            
+            elements.winTitle.textContent = winnerText;
+            
+            // Populate win stats
+            let winStatsHTML = '';
+            
+            if (gameState.isMultiplayer) {
+                winStatsHTML = `
+                    <div class="win-stat">
+                        <span class="win-stat-label">Player 1 Score:</span>
+                        <span class="win-stat-value">${gameState.playerScores[0]}</span>
+                    </div>
+                    <div class="win-stat">
+                        <span class="win-stat-label">Player 2 Score:</span>
+                        <span class="win-stat-value">${gameState.playerScores[1]}</span>
+                    </div>
+                `;
+            }
+            
+            winStatsHTML += `
+                <div class="win-stat">
+                    <span class="win-stat-label">Time:</span>
+                    <span class="win-stat-value">${gameState.timer}s</span>
+                </div>
+                <div class="win-stat">
+                    <span class="win-stat-label">Moves:</span>
+                    <span class="win-stat-value">${gameState.moves}</span>
+                </div>
+                <div class="win-stat">
+                    <span class="win-stat-label">Total Score:</span>
+                    <span class="win-stat-value">${gameState.score}</span>
+                </div>
+                <div class="win-stat">
+                    <span class="win-stat-label">Max Combo:</span>
+                    <span class="win-stat-value">${enhancedState.maxCombo}x</span>
+                </div>
+                <div class="win-stat">
+                    <span class="win-stat-label">Multiplier:</span>
+                    <span class="win-stat-value">${enhancedState.streakMultiplier.toFixed(1)}x</span>
+                </div>
+            `;
+            
+            elements.winStats.innerHTML = winStatsHTML;
+            
+            // Show the win animation
+            elements.winAnimation.classList.add('active');
+        }
+
+        // Check and unlock achievements
+        function checkAchievements() {
+            let earnedNew = false;
+            
+            // First win
+            if (!achievements[0].earned && gameStats.gamesWon > 0) {
+                achievements[0].earned = true;
+                earnedNew = true;
+                soundManager.playAchievement();
+            }
+            
+            // Speed demon (under 60 seconds)
+            if (!achievements[1].earned && gameState.timer < 60) {
+                achievements[1].earned = true;
+                earnedNew = true;
+                soundManager.playAchievement();
+            }
+            
+            // Perfect game (no extra moves)
+            if (!achievements[2].earned && gameState.moves <= gameState.totalPairs + 5) {
+                achievements[2].earned = true;
+                earnedNew = true;
+                soundManager.playAchievement();
+            }
+            
+            // Combo master
+            if (!achievements[3].earned && enhancedState.maxCombo >= 5) {
+                achievements[3].earned = true;
+                earnedNew = true;
+                soundManager.playAchievement();
+            }
+            
+            // Night owl
+            if (!achievements[4].earned && gameStats.gamesPlayed >= 10) {
+                achievements[4].earned = true;
+                earnedNew = true;
+                soundManager.playAchievement();
+            }
+            
+            // Update achievements display if needed
+            if (earnedNew) {
+                updateAchievementsDisplay();
+            }
+        }
+
+        // Update achievements display
+        function updateAchievementsDisplay() {
+            elements.achievementsList.innerHTML = '';
+            
+            achievements.forEach(achievement => {
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement ${achievement.earned ? 'earned' : ''}`;
+                
+                achievementElement.innerHTML = `
+                    <div class="achievement-name">${achievement.icon} ${achievement.name}</div>
+                    <div class="achievement-desc">${achievement.desc}</div>
+                `;
+                
+                elements.achievementsList.appendChild(achievementElement);
+            });
+        }
+
+        // Update statistics display
+        function updateStatsDisplay() {
+            elements.statsList.innerHTML = '';
+            
+            const stats = [
+                { name: 'Games Played', value: gameStats.gamesPlayed },
+                { name: 'Games Won', value: gameStats.gamesWon },
+                { name: 'Win Rate', value: gameStats.gamesPlayed > 0 ? Math.round((gameStats.gamesWon / gameStats.gamesPlayed) * 100) + '%' : '0%' },
+                { name: 'Total Moves', value: gameStats.totalMoves },
+                { name: 'Total Play Time', value: gameStats.totalTime + 's' },
+                { name: 'Highest Score', value: gameStats.highestScore },
+                { name: 'Highest Combo', value: gameStats.highestCombo },
+                { name: 'Power-ups Used', value: gameStats.powerupsUsed },
+                { name: 'Cards Collected', value: gameStats.cardsCollected + '/' + cardCollection.length }
+            ];
+            
+            stats.forEach(stat => {
+                const statElement = document.createElement('div');
+                statElement.className = 'stat-item';
+                
+                statElement.innerHTML = `
+                    <div class="stat-name">${stat.name}</div>
+                    <div class="stat-value">${stat.value}</div>
+                `;
+                
+                elements.statsList.appendChild(statElement);
+            });
+        }
+
+        // Update card collection display
+        function updateCardCollectionDisplay() {
+            elements.cardCollectionContainer.innerHTML = '';
+            
+            cardCollection.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `collection-card ${card.unlocked ? '' : 'locked'}`;
+                cardElement.title = card.unlocked ? card.description : 'Locked: ' + card.description;
+                
+                cardElement.innerHTML = `
+                    <div class="collection-card-icon">${card.icon}</div>
+                    <div class="collection-card-name">${card.unlocked ? card.name : '???'}</div>
+                `;
+                
+                elements.cardCollectionContainer.appendChild(cardElement);
+            });
+        }
+
+        // Toggle multiplayer mode
+        function toggleMultiplayer() {
+            gameState.isMultiplayer = !gameState.isMultiplayer;
+            elements.multiplayerBtn.textContent = `MULTIPLAYER: ${gameState.isMultiplayer ? 'ON' : 'OFF'}`;
+            
+            // Show/hide multiplayer indicator
+            elements.multiplayerIndicator.style.display = gameState.isMultiplayer ? 'flex' : 'none';
+            
+            resetGame();
+        }
+
+        // Switch player in multiplayer mode
+        function switchPlayer() {
+            gameState.currentPlayer = (gameState.currentPlayer + 1) % 2;
+            updateMultiplayerDisplay();
+        }
+
+        // Update multiplayer display
+        function updateMultiplayerDisplay() {
+            // Update player scores
+            elements.player1Score.textContent = gameState.playerScores[0];
+            elements.player2Score.textContent = gameState.playerScores[1];
+            
+            // Update active player indicator
+            elements.player1Indicator.classList.toggle('active', gameState.currentPlayer === 0);
+            elements.player2Indicator.classList.toggle('active', gameState.currentPlayer === 1);
+        }
+
+        // Update game display
+        function updateGameDisplay() {
+            elements.movesDisplay.textContent = gameState.moves;
+            elements.timerDisplay.textContent = `${gameState.timer}s`;
+            elements.matchesDisplay.textContent = `${gameState.matchedPairs}/${gameState.totalPairs}`;
+            elements.scoreDisplay.textContent = gameState.score;
+        }
+
+        // Initialize the game when the page loads
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
