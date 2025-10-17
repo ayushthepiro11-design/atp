@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Card Match - Fixed for Laptop</title>
+    <title>Retro Card Match - Enhanced Audio</title>
     <style>
         :root {
             --primary: #ff00ff;
@@ -19,6 +19,27 @@
             --player2: #4444ff;
         }
 
+        /* High Contrast Mode */
+        .high-contrast-mode {
+            --primary: #ffffff;
+            --secondary: #000000;
+            --accent: #ffff00;
+            --background: #000000;
+            --card-bg: #333333;
+            --text: #ffffff;
+            filter: contrast(150%);
+        }
+
+        /* Colorblind Mode */
+        .colorblind-mode {
+            --primary: #009292;
+            --secondary: #ff6b6b;
+            --accent: #4ecdc4;
+            --success: #45b7d1;
+            --danger: #96ceb4;
+            --warning: #feca57;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -27,7 +48,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--background), #0a0c14);
+            background: #0a0c14;
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
@@ -37,6 +58,168 @@
 
         body.loaded {
             opacity: 1;
+        }
+
+        /* Audio Prompt */
+        .audio-prompt {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            z-index: 1001;
+            color: var(--accent);
+        }
+
+        .audio-prompt button {
+            background: linear-gradient(135deg, #ff6600, #cc3300);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-top: 10px;
+        }
+
+        /* Custom Modal */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            max-width: 300px;
+            color: var(--text);
+        }
+
+        .modal-content button {
+            background: linear-gradient(135deg, #ff6600, #cc3300);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 2px solid var(--accent);
+            margin-top: 10px;
+        }
+
+        /* Dynamic Background */
+        .dynamic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,0,255,0.3) 0%, rgba(255,0,255,0) 70%);
+            animation: float 15s infinite linear;
+            opacity: 0.4;
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.4;
+            animation: pulseGlow 8s ease-in-out infinite;
+        }
+
+        .glow-1 {
+            background: var(--primary);
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .glow-2 {
+            background: var(--secondary);
+            bottom: 10%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .glow-3 {
+            background: var(--accent);
+            top: 50%;
+            right: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.4;
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(0) rotate(360deg);
+                opacity: 0.4;
+            }
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(50px, 50px);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.4;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.6;
+            }
         }
 
         /* Section Styling */
@@ -49,17 +232,22 @@
             justify-content: flex-start;
             position: relative;
             z-index: 10;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(20px);
+            opacity: 0;
         }
 
         .section.active {
             display: flex;
+            transform: translateY(0);
+            opacity: 1;
         }
 
         /* Home Screen */
         #home-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
             text-align: center;
             justify-content: center;
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .main-title {
@@ -130,7 +318,7 @@
 
         /* Game Screen */
         #game-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .game-header {
@@ -169,6 +357,10 @@
         .back-btn:hover {
             transform: translateY(2px);
             box-shadow: 0 3px 0 #001a66;
+        }
+
+        .back-btn--spaced {
+            margin-top: 30px;
         }
 
         .game-info {
@@ -254,7 +446,7 @@
         .power-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none !important;
+            transform: none;
         }
 
         .progress-bar {
@@ -311,6 +503,7 @@
             cursor: pointer;
             border-radius: 10px;
             transform: translateZ(0);
+            tabindex: 0; /* For keyboard navigation */
         }
 
         .card.flipped {
@@ -509,7 +702,7 @@
 
         /* Options Screen */
         #options-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .options-container {
@@ -574,7 +767,7 @@
 
         /* Achievements Screen */
         #achievements-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .achievements-container {
@@ -630,7 +823,7 @@
 
         /* Statistics Screen */
         #statistics-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .stats-container {
@@ -678,7 +871,7 @@
 
         /* Collection Screen */
         #collection-screen {
-            background: linear-gradient(135deg, #1a1f2b, #0d0f17);
+            background: rgba(10, 12, 20, 0.7);
         }
 
         .collection-container {
@@ -975,12 +1168,24 @@
         <div class="loading-text">LOADING...</div>
     </div>
 
-    <div class="dynamic-bg" id="dynamic-bg"></div>
+    <!-- Dynamic Background -->
+    <div class="dynamic-bg" id="dynamic-bg">
+        <div class="bg-grid"></div>
+        <div class="bg-glow glow-1"></div>
+        <div class="bg-glow glow-2"></div>
+        <div class="bg-glow glow-3"></div>
+    </div>
     
     <!-- Audio Controls -->
     <div class="audio-controls">
         <button class="audio-btn" id="music-toggle" title="Toggle Music">🎵</button>
         <button class="audio-btn" id="sound-toggle" title="Toggle Sound Effects">🔊</button>
+    </div>
+    
+    <!-- Audio Prompt -->
+    <div class="audio-prompt" id="audio-prompt" style="display: none;">
+        <p>Click to Enable Audio</p>
+        <button id="enable-audio-btn">Enable Audio</button>
     </div>
     
     <!-- Home Screen -->
@@ -1070,6 +1275,7 @@
         <div class="game-controls">
             <button class="control-btn" id="start-btn">START GAME</button>
             <button class="control-btn" id="reset-btn">RESET GAME</button>
+            <button class="control-btn" id="pause-btn" style="display: none;">PAUSE GAME</button>
             <button class="control-btn" id="multiplayer-btn">MULTIPLAYER: OFF</button>
         </div>
     </section>
@@ -1113,7 +1319,7 @@
                 </div>
             </div>
             
-            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
+            <button class="back-btn back-btn--spaced" data-target="home-screen">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1122,7 +1328,7 @@
         <div class="achievements-container">
             <h2 class="achievements-title">ACHIEVEMENTS</h2>
             <div id="achievements-list"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
+            <button class="back-btn back-btn--spaced" data-target="home-screen">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1131,7 +1337,7 @@
         <div class="stats-container">
             <h2 class="stats-title">GAME STATISTICS</h2>
             <div id="stats-list"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
+            <button class="back-btn back-btn--spaced" data-target="home-screen">BACK TO MENU</button>
         </div>
     </section>
     
@@ -1140,7 +1346,7 @@
         <div class="collection-container">
             <h2 class="collection-title">CARD COLLECTION</h2>
             <div class="card-collection" id="card-collection"></div>
-            <button class="back-btn" data-target="home-screen" style="margin-top: 30px;">BACK TO MENU</button>
+            <button class="back-btn back-btn--spaced" data-target="home-screen">BACK TO MENU</button>
         </div>
     </section>
 
@@ -1159,6 +1365,21 @@
     </div>
 
     <script>
+        // Configuration
+        const config = {
+            powerUps: {
+                hint: { count: 3, icon: '💡' },
+                shuffle: { count: 2, icon: '🔄' },
+                freeze: { count: 1, icon: '⏸️' }
+            },
+            scoring: {
+                baseScore: 100,
+                timeBonusMax: 50,
+                timeBonusDivisor: 10,
+                comboMultiplier: 0.1
+            }
+        };
+
         // Game state
         const gameState = {
             cards: [],
@@ -1168,6 +1389,7 @@
             timer: 0,
             timerInterval: null,
             gameStarted: false,
+            gamePaused: false,
             musicOn: true,
             soundOn: true,
             score: 0,
@@ -1188,9 +1410,9 @@
             lastMatchTime: 0,
             consecutiveMatches: 0,
             powerUps: {
-                hint: 3,
-                shuffle: 2,
-                freeze: 1
+                hint: config.powerUps.hint.count,
+                shuffle: config.powerUps.shuffle.count,
+                freeze: config.powerUps.freeze.count
             },
             freezeTimeActive: false,
             freezeTimeRemaining: 0
@@ -1198,9 +1420,9 @@
 
         // Difficulty settings
         const difficultySettings = {
-            easy: { rows: 3, cols: 4 },   // 12 cards, 6 pairs
-            normal: { rows: 4, cols: 4 }, // 16 cards, 8 pairs
-            hard: { rows: 6, cols: 6 }    // 36 cards, 18 pairs
+            easy: { rows: 3, cols: 4 },
+            normal: { rows: 4, cols: 4 },
+            hard: { rows: 6, cols: 6 }
         };
 
         // Themes
@@ -1249,7 +1471,23 @@
             cardsCollected: 0
         };
 
-        // Enhanced Sound Manager with improved sounds
+        // Save and Load Game Data
+        function saveGameData() {
+            localStorage.setItem('gameStats', JSON.stringify(gameStats));
+            localStorage.setItem('achievements', JSON.stringify(achievements));
+            localStorage.setItem('cardCollection', JSON.stringify(cardCollection));
+        }
+
+        function loadGameData() {
+            const savedStats = localStorage.getItem('gameStats');
+            if (savedStats) Object.assign(gameStats, JSON.parse(savedStats));
+            const savedAchievements = localStorage.getItem('achievements');
+            if (savedAchievements) achievements.forEach((ach, i) => Object.assign(ach, JSON.parse(savedAchievements)[i]));
+            const savedCollection = localStorage.getItem('cardCollection');
+            if (savedCollection) cardCollection.forEach((card, i) => Object.assign(card, JSON.parse(savedCollection)[i]));
+        }
+
+        // Enhanced Sound Manager
         const soundManager = {
             audioContext: null,
             masterGain: null,
@@ -1258,6 +1496,8 @@
             musicOscillator: null,
             musicPlaying: false,
             initialized: false,
+            currentMusic: null,
+            musicTimeout: null,
             
             init() {
                 if (this.initialized) return;
@@ -1272,9 +1512,9 @@
                     this.sfxGain.connect(this.masterGain);
                     this.masterGain.connect(this.audioContext.destination);
                     
-                    this.masterGain.gain.value = 0.6; // Lower overall volume
-                    this.musicGain.gain.value = 0.3; // Softer music
-                    this.sfxGain.gain.value = 0.5; // Softer sound effects
+                    this.masterGain.gain.value = 0.5;
+                    this.musicGain.gain.value = 0.15;
+                    this.sfxGain.gain.value = 0.5;
                     
                     this.initialized = true;
                     console.log("Audio system initialized successfully");
@@ -1284,66 +1524,187 @@
                 }
             },
             
-            // Softer music system
+            resumeAudio() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume().then(() => {
+                        console.log("Audio context resumed");
+                    });
+                }
+            },
+            
             playMusic(track = 'main') {
                 if (!this.initialized || !gameState.musicOn) return;
                 
-                // Resume context if suspended
-                if (this.audioContext.state === 'suspended') {
-                    this.audioContext.resume();
-                }
-                
-                // Stop any existing music
+                this.resumeAudio();
                 this.stopMusic();
                 
-                // Create oscillator for retro-style music
-                this.musicOscillator = this.audioContext.createOscillator();
-                const gainNode = this.audioContext.createGain();
-                
-                this.musicOscillator.connect(gainNode);
-                gainNode.connect(this.musicGain);
-                
-                // Different music patterns based on track
                 if (track === 'main') {
-                    this.musicOscillator.type = 'sine'; // Softer sine wave
-                    this.musicOscillator.frequency.setValueAtTime(220, this.audioContext.currentTime);
-                    
-                    // Create a simple chiptune melody
-                    const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63]; // C, E, G, C, G, E
-                    let time = this.audioContext.currentTime;
-                    
-                    notes.forEach((note, index) => {
-                        this.musicOscillator.frequency.setValueAtTime(note, time);
-                        time += 0.4; // Slower tempo
-                    });
-                    
-                    // Loop the melody
-                    this.musicOscillator.frequency.setValueAtTime(notes[0], time);
+                    this.playMainTheme();
                 } else if (track === 'game') {
-                    this.musicOscillator.type = 'triangle'; // Softer triangle wave
-                    this.musicOscillator.frequency.setValueAtTime(196.00, this.audioContext.currentTime); // G
-                    
-                    // Pulsing effect for game music
-                    const pulseTime = 0.8; // Slower pulse
-                    let currentTime = this.audioContext.currentTime;
-                    
-                    for (let i = 0; i < 16; i++) {
-                        gainNode.gain.setValueAtTime(0.2, currentTime); // Lower volume
-                        gainNode.gain.exponentialRampToValueAtTime(0.05, currentTime + pulseTime);
-                        currentTime += pulseTime;
-                    }
+                    this.playGameTheme();
                 }
                 
-                this.musicOscillator.start();
                 this.musicPlaying = true;
             },
             
+            playMainTheme() {
+                const leadOsc = this.audioContext.createOscillator();
+                const bassOsc = this.audioContext.createOscillator();
+                const chordOsc = this.audioContext.createOscillator();
+                
+                const leadGain = this.audioContext.createGain();
+                const bassGain = this.audioContext.createGain();
+                const chordGain = this.audioContext.createGain();
+                
+                leadOsc.connect(leadGain);
+                bassOsc.connect(bassGain);
+                chordOsc.connect(chordGain);
+                
+                leadGain.connect(this.musicGain);
+                bassGain.connect(this.musicGain);
+                chordGain.connect(this.musicGain);
+                
+                leadOsc.type = 'square';
+                bassOsc.type = 'sawtooth';
+                chordOsc.type = 'triangle';
+                
+                const melody = [
+                    { note: 523.25, duration: 0.4 },
+                    { note: 659.25, duration: 0.4 },
+                    { note: 783.99, duration: 0.4 },
+                    { note: 1046.50, duration: 0.8 },
+                    { note: 783.99, duration: 0.4 },
+                    { note: 659.25, duration: 0.4 },
+                    { note: 523.25, duration: 0.8 },
+                    { note: 523.25, duration: 0.4 }
+                ];
+                
+                const bassLine = [
+                    { note: 130.81, duration: 0.8 },
+                    { note: 164.81, duration: 0.8 },
+                    { note: 196.00, duration: 0.8 },
+                    { note: 130.81, duration: 0.8 }
+                ];
+                
+                const chords = [
+                    { note: 261.63, duration: 1.6 },
+                    { note: 329.63, duration: 1.6 },
+                    { note: 392.00, duration: 1.6 },
+                    { note: 261.63, duration: 1.6 }
+                ];
+                
+                let currentTime = this.audioContext.currentTime;
+                
+                melody.forEach((note) => {
+                    leadOsc.frequency.setValueAtTime(note.note, currentTime);
+                    currentTime += note.duration;
+                });
+                
+                currentTime = this.audioContext.currentTime;
+                bassLine.forEach((note) => {
+                    bassOsc.frequency.setValueAtTime(note.note, currentTime);
+                    currentTime += note.duration;
+                });
+                
+                currentTime = this.audioContext.currentTime;
+                chords.forEach((note) => {
+                    chordOsc.frequency.setValueAtTime(note.note, currentTime);
+                    currentTime += note.duration;
+                });
+                
+                leadGain.gain.value = 0.2;
+                bassGain.gain.value = 0.1;
+                chordGain.gain.value = 0.08;
+                
+                leadOsc.start();
+                bassOsc.start();
+                chordOsc.start();
+                
+                this.musicTimeout = setTimeout(() => {
+                    leadOsc.stop();
+                    bassOsc.stop();
+                    chordOsc.stop();
+                    if (this.musicPlaying && gameState.musicOn) {
+                        this.playMainTheme();
+                    }
+                }, 6400);
+                
+                this.currentMusic = { leadOsc, bassOsc, chordOsc, leadGain, bassGain, chordGain };
+            },
+            
+            playGameTheme() {
+                const leadOsc = this.audioContext.createOscillator();
+                const bassOsc = this.audioContext.createOscillator();
+                
+                const leadGain = this.audioContext.createGain();
+                const bassGain = this.audioContext.createGain();
+                
+                leadOsc.connect(leadGain);
+                bassOsc.connect(bassGain);
+                
+                leadGain.connect(this.musicGain);
+                bassGain.connect(this.musicGain);
+                
+                leadOsc.type = 'square';
+                bassOsc.type = 'sawtooth';
+                
+                const melody = [
+                    { note: 659.25, duration: 0.3 },
+                    { note: 783.99, duration: 0.3 },
+                    { note: 880.00, duration: 0.3 },
+                    { note: 1046.50, duration: 0.6 },
+                    { note: 880.00, duration: 0.3 },
+                    { note: 783.99, duration: 0.3 },
+                    { note: 659.25, duration: 0.6 },
+                    { note: 587.33, duration: 0.3 }
+                ];
+                
+                const bassLine = [
+                    { note: 196.00, duration: 0.6 },
+                    { note: 220.00, duration: 0.6 },
+                    { note: 246.94, duration: 0.6 },
+                    { note: 196.00, duration: 0.6 }
+                ];
+                
+                let currentTime = this.audioContext.currentTime;
+                
+                melody.forEach((note) => {
+                    leadOsc.frequency.setValueAtTime(note.note, currentTime);
+                    currentTime += note.duration;
+                });
+                
+                currentTime = this.audioContext.currentTime;
+                bassLine.forEach((note) => {
+                    bassOsc.frequency.setValueAtTime(note.note, currentTime);
+                    currentTime += note.duration;
+                });
+                
+                leadGain.gain.value = 0.2;
+                bassGain.gain.value = 0.1;
+                
+                leadOsc.start();
+                bassOsc.start();
+                
+                this.musicTimeout = setTimeout(() => {
+                    leadOsc.stop();
+                    bassOsc.stop();
+                    if (this.musicPlaying && gameState.musicOn) {
+                        this.playGameTheme();
+                    }
+                }, 4800);
+                
+                this.currentMusic = { leadOsc, bassOsc, leadGain, bassGain };
+            },
+            
             stopMusic() {
-                if (this.musicOscillator) {
-                    this.musicOscillator.stop();
-                    this.musicOscillator = null;
-                    this.musicPlaying = false;
+                if (this.musicTimeout) clearTimeout(this.musicTimeout);
+                if (this.currentMusic) {
+                    Object.values(this.currentMusic).forEach(node => {
+                        if (node.stop) node.stop();
+                    });
+                    this.currentMusic = null;
                 }
+                this.musicPlaying = false;
             },
             
             toggleMusic() {
@@ -1361,9 +1722,10 @@
                 return gameState.soundOn;
             },
             
-            // Softer sound effects
-            playTone(frequency, duration, type = 'sine', volume = 0.2) {
+            playTone(frequency, duration, type = 'sine', volume = 0.3) {
                 if (!this.initialized || !gameState.soundOn) return;
+                
+                this.resumeAudio();
                 
                 try {
                     const oscillator = this.audioContext.createOscillator();
@@ -1386,16 +1748,15 @@
             },
             
             playFlip() {
-                this.playTone(523.25, 0.15, 'sine'); // Softer sine wave, longer duration
-                setTimeout(() => this.playTone(659.25, 0.12, 'sine'), 80); // Softer follow-up
+                this.playTone(523.25, 0.15, 'square');
+                setTimeout(() => this.playTone(659.25, 0.12, 'square'), 80);
             },
             
             playMatch() {
-                this.playTone(659.25, 0.4, 'sine'); // Softer, longer
+                this.playTone(659.25, 0.4, 'sine');
                 setTimeout(() => this.playTone(783.99, 0.4, 'sine'), 150);
                 setTimeout(() => this.playTone(1046.50, 0.5, 'sine'), 300);
                 
-                // Add celebratory tones
                 setTimeout(() => {
                     this.playTone(523.25, 0.3, 'triangle');
                     this.playTone(659.25, 0.3, 'triangle');
@@ -1404,18 +1765,17 @@
             },
             
             playMismatch() {
-                this.playTone(220, 0.3, 'sine'); // Softer sine wave
-                setTimeout(() => this.playTone(196, 0.4, 'sine'), 200);
-                setTimeout(() => this.playTone(174.61, 0.3, 'sine'), 400);
+                this.playTone(220, 0.3, 'sawtooth');
+                setTimeout(() => this.playTone(196, 0.4, 'sawtooth'), 200);
+                setTimeout(() => this.playTone(174.61, 0.3, 'sawtooth'), 400);
             },
             
             playCombo(comboLevel) {
-                const baseFreq = 440 + (comboLevel * 30); // Smaller frequency increments
-                this.playTone(baseFreq, 0.5, 'sine'); // Softer sine wave
-                setTimeout(() => this.playTone(baseFreq + 60, 0.4, 'sine'), 250);
-                setTimeout(() => this.playTone(baseFreq + 120, 0.3, 'sine'), 500);
+                const baseFreq = 440 + (comboLevel * 30);
+                this.playTone(baseFreq, 0.5, 'square');
+                setTimeout(() => this.playTone(baseFreq + 60, 0.4, 'square'), 250);
+                setTimeout(() => this.playTone(baseFreq + 120, 0.3, 'square'), 500);
                 
-                // Special sound for high combos
                 if (comboLevel >= 5) {
                     setTimeout(() => {
                         this.playTone(1046.50, 0.6, 'sine');
@@ -1425,16 +1785,15 @@
             },
             
             playWin() {
-                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98]; // C5, E5, G5, C6, E6, G6
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
                 notes.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.5, 'sine', 0.4), i * 200); // Slower, softer
+                    setTimeout(() => this.playTone(freq, 0.5, 'sine', 0.5), i * 200);
                 });
                 
-                // Add a final celebratory chord
                 setTimeout(() => {
-                    this.playTone(523.25, 1.2, 'sine', 0.3); // C5
-                    this.playTone(659.25, 1.2, 'sine', 0.3); // E5
-                    this.playTone(783.99, 1.2, 'sine', 0.3); // G5
+                    this.playTone(523.25, 1.2, 'sine', 0.4);
+                    this.playTone(659.25, 1.2, 'sine', 0.4);
+                    this.playTone(783.99, 1.2, 'sine', 0.4);
                 }, 1500);
             },
             
@@ -1443,36 +1802,38 @@
                 
                 switch(type) {
                     case 'hint':
-                        frequencies = [523.25, 659.25, 783.99]; // C5, E5, G5
+                        frequencies = [523.25, 659.25, 783.99];
                         break;
                     case 'shuffle':
-                        frequencies = [392.00, 493.88, 587.33]; // G4, B4, D5
+                        frequencies = [392.00, 493.88, 587.33];
                         break;
                     case 'freeze':
-                        frequencies = [261.63, 329.63, 392.00]; // C4, E4, G4
+                        frequencies = [261.63, 329.63, 392.00];
                         break;
                     default:
-                        frequencies = [440, 554.37, 659.25]; // A4, C#5, E5
+                        frequencies = [440, 554.37, 659.25];
                 }
                 
                 frequencies.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.4, 'sine'), i * 150); // Softer, slower
+                    setTimeout(() => this.playTone(freq, 0.4, 'sine'), i * 150);
                 });
             },
             
             playButtonClick() {
-                this.playTone(330, 0.15, 'sine'); // Softer sine wave
+                this.resumeAudio();
+                this.playTone(330, 0.15, 'square');
             },
             
             playMenuTransition() {
-                this.playTone(659.25, 0.3, 'sine'); // Softer, longer
+                this.resumeAudio();
+                this.playTone(659.25, 0.3, 'sine');
                 setTimeout(() => this.playTone(523.25, 0.3, 'sine'), 150);
             },
             
             playAchievement() {
-                const notes = [1046.50, 1174.66, 1318.51, 1396.91, 1567.98]; // C6, D6, E6, F6, G6
+                const notes = [1046.50, 1174.66, 1318.51, 1396.91, 1567.98];
                 notes.forEach((freq, i) => {
-                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.5), i * 150); // Softer, slower
+                    setTimeout(() => this.playTone(freq, 0.3, 'sine', 0.6), i * 150);
                 });
             }
         };
@@ -1493,6 +1854,7 @@
             scoreDisplay: document.getElementById('score'),
             startBtn: document.getElementById('start-btn'),
             resetBtn: document.getElementById('reset-btn'),
+            pauseBtn: document.getElementById('pause-btn'),
             multiplayerBtn: document.getElementById('multiplayer-btn'),
             startMessage: document.getElementById('start-message'),
             comboDisplay: document.getElementById('combo'),
@@ -1516,14 +1878,20 @@
             player1Indicator: document.getElementById('player1-indicator'),
             player2Indicator: document.getElementById('player2-indicator'),
             player1Score: document.getElementById('player1-score'),
-            player2Score: document.getElementById('player2-score')
+            player2Score: document.getElementById('player2-score'),
+            dynamicBg: document.getElementById('dynamic-bg'),
+            audioPrompt: document.getElementById('audio-prompt'),
+            enableAudioBtn: document.getElementById('enable-audio-btn')
         };
 
         // Initialize the game
         function initGame() {
             console.log("Initializing game...");
             
-            // Hide loading indicator after a short delay
+            loadGameData();
+            
+            createBackgroundParticles();
+            
             setTimeout(() => {
                 elements.loadingIndicator.style.opacity = '0';
                 setTimeout(() => {
@@ -1532,23 +1900,19 @@
                 }, 500);
             }, 1000);
             
-            // Initialize audio system
             soundManager.init();
+            initAudioPrompt();
             
-            // Set up navigation
             setupNavigation();
             
-            // Initialize game screens
             initGameScreen();
             initOptionsScreen();
             initAchievementsScreen();
             initStatisticsScreen();
             initCollectionScreen();
             
-            // Initialize the game board
             resetGame();
             
-            // Start background music
             if (gameState.musicOn) {
                 soundManager.playMusic('main');
             }
@@ -1556,43 +1920,94 @@
             console.log("Game initialized successfully!");
         }
 
+        // Audio Prompt
+        function initAudioPrompt() {
+            const prompt = elements.audioPrompt;
+            const enableBtn = elements.enableAudioBtn;
+            
+            enableBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                if (gameState.musicOn) soundManager.playMusic('main');
+                prompt.style.display = 'none';
+                soundManager.playButtonClick();
+            });
+            
+            if (soundManager.audioContext && soundManager.audioContext.state === 'suspended') {
+                prompt.style.display = 'block';
+            }
+        }
+
+        // Create dynamic background particles
+        function createBackgroundParticles() {
+            const bgContainer = elements.dynamicBg;
+            const particleCount = window.innerWidth < 768 ? 15 : 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'bg-particle';
+                
+                const size = Math.random() * 40 + 10;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                
+                const colors = [
+                    'rgba(255, 0, 255, 0.3)',
+                    'rgba(0, 255, 255, 0.3)',
+                    'rgba(255, 204, 0, 0.3)'
+                ];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.background = `radial-gradient(circle, ${randomColor} 0%, rgba(255,0,255,0) 70%)`;
+                
+                const duration = Math.random() * 10 + 15;
+                const delay = Math.random() * 5;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                bgContainer.appendChild(particle);
+            }
+        }
+
         // Set up navigation between sections
         function setupNavigation() {
-            // Menu buttons
             const menuButtons = document.querySelectorAll('.menu-btn');
             menuButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    soundManager.resumeAudio();
                     const target = button.getAttribute('data-target');
                     soundManager.playMenuTransition();
                     showSection(target);
                 });
             });
             
-            // Back buttons
             const backButtons = document.querySelectorAll('.back-btn');
             backButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    soundManager.resumeAudio();
                     const target = button.getAttribute('data-target');
                     soundManager.playMenuTransition();
                     showSection(target);
                 });
             });
             
-            // Audio control buttons
             elements.musicToggle.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 const isOn = soundManager.toggleMusic();
                 elements.musicToggle.textContent = isOn ? '🎵' : '🔇';
                 soundManager.playButtonClick();
             });
             
             elements.soundToggle.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 const isOn = soundManager.toggleSound();
                 elements.soundToggle.textContent = isOn ? '🔊' : '🔇';
                 soundManager.playButtonClick();
             });
             
-            // Continue button for win screen
             elements.continueBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 elements.winAnimation.classList.remove('active');
                 soundManager.playButtonClick();
             });
@@ -1608,21 +2023,17 @@
             if (targetSection) {
                 targetSection.classList.add('active');
                 
-                // If showing game screen, initialize it
                 if (sectionId === 'game-screen') {
                     resetGame();
-                    // Change music when entering game screen
                     if (gameState.musicOn) {
                         soundManager.playMusic('game');
                     }
                 } else {
-                    // Return to main music when not in game
                     if (gameState.musicOn && !soundManager.musicPlaying) {
                         soundManager.playMusic('main');
                     }
                 }
                 
-                // Update specific screens when shown
                 if (sectionId === 'achievements-screen') {
                     updateAchievementsDisplay();
                 } else if (sectionId === 'statistics-screen') {
@@ -1635,35 +2046,62 @@
 
         // Initialize game screen
         function initGameScreen() {
-            // Set up game controls
             elements.startBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 if (gameState.gameStarted) {
-                    // If game is already started, reset it
-                    resetGame();
+                    if (gameState.gamePaused) {
+                        togglePause();
+                    } else {
+                        resetGame();
+                    }
                 } else {
-                    // Otherwise, start the game
                     startGame();
                 }
             });
             
             elements.resetBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 resetGame();
             });
             
+            elements.pauseBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
+                togglePause();
+            });
+            
             elements.multiplayerBtn.addEventListener('click', () => {
+                soundManager.resumeAudio();
                 soundManager.playButtonClick();
                 toggleMultiplayer();
             });
             
-            // Set up power-up buttons
             elements.hintBtn.addEventListener('click', useHint);
             elements.shuffleBtn.addEventListener('click', useShuffle);
             elements.freezeBtn.addEventListener('click', useFreeze);
             
-            // Update power-up button states
             updatePowerUpButtons();
+        }
+
+        // Toggle Pause
+        function togglePause() {
+            if (gameState.gameStarted && !gameState.gamePaused) {
+                gameState.gamePaused = true;
+                clearInterval(gameState.timerInterval);
+                elements.pauseBtn.textContent = 'RESUME GAME';
+                elements.pauseBtn.style.display = 'inline-block';
+            } else if (gameState.gamePaused) {
+                gameState.gamePaused = false;
+                gameState.timerInterval = setInterval(() => {
+                    if (!enhancedState.freezeTimeActive && gameState.gameStarted) {
+                        gameState.timer++;
+                        elements.timerDisplay.textContent = `${gameState.timer}s`;
+                    }
+                }, 1000);
+                elements.pauseBtn.textContent = 'PAUSE GAME';
+            }
+            soundManager.playButtonClick();
         }
 
         // Initialize options screen
@@ -1674,13 +2112,14 @@
             
             optionButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    soundManager.resumeAudio();
+                    
                     const option = button.getAttribute('data-option');
                     const value = button.getAttribute('data-value');
                     
                     console.log(`Option clicked: ${option} = ${value}`);
                     soundManager.playButtonClick();
                     
-                    // Handle different option types
                     switch(option) {
                         case 'difficulty':
                             setDifficulty(value);
@@ -1702,7 +2141,6 @@
                             break;
                     }
                     
-                    // Update button states
                     updateOptionButtons(option, value, button);
                 });
             });
@@ -1772,11 +2210,10 @@
             document.body.classList.toggle('high-contrast-mode');
         }
 
-        // Update option buttons to reflect current selection
+        // Update option buttons
         function updateOptionButtons(option, value, clickedButton) {
             const buttons = document.querySelectorAll(`[data-option="${option}"]`);
             
-            // For non-toggle options, update active state
             if (!['music', 'sound', 'colorblind', 'high-contrast'].includes(option)) {
                 buttons.forEach(button => {
                     button.classList.remove('active');
@@ -1784,7 +2221,6 @@
                 clickedButton.classList.add('active');
             }
             
-            // Update button text for toggles
             if (option === 'music') {
                 clickedButton.textContent = `MUSIC: ${value === 'on' ? 'OFF' : 'ON'}`;
                 clickedButton.setAttribute('data-value', value === 'on' ? 'off' : 'on');
@@ -1804,24 +2240,19 @@
 
         // Enhanced scoring system
         function calculateScore(isMatch) {
-            let baseScore = 100;
+            let baseScore = config.scoring.baseScore;
             
             if (isMatch) {
-                // Combo bonus
                 enhancedState.currentCombo++;
                 enhancedState.maxCombo = Math.max(enhancedState.maxCombo, enhancedState.currentCombo);
                 
-                // Time bonus (faster matches = more points)
-                const timeBonus = Math.max(0, 50 - Math.floor(gameState.timer / 10));
+                const timeBonus = Math.max(0, config.scoring.timeBonusMax - Math.floor(gameState.timer / config.scoring.timeBonusDivisor));
                 
-                // Combo multiplier
-                const comboMultiplier = 1 + (enhancedState.currentCombo * 0.1);
+                const comboMultiplier = 1 + (enhancedState.currentCombo * config.scoring.comboMultiplier);
                 
-                // Update multiplier display
                 enhancedState.streakMultiplier = comboMultiplier;
                 elements.multiplierDisplay.textContent = comboMultiplier.toFixed(1);
                 
-                // Show combo indicator for high combos
                 if (enhancedState.currentCombo >= 3) {
                     showComboIndicator(enhancedState.currentCombo);
                     soundManager.playCombo(enhancedState.currentCombo);
@@ -1829,7 +2260,6 @@
                 
                 return Math.floor((baseScore + timeBonus) * comboMultiplier);
             } else {
-                // Reset combo on mismatch
                 enhancedState.currentCombo = 0;
                 enhancedState.streakMultiplier = 1;
                 elements.multiplierDisplay.textContent = "1";
@@ -1851,27 +2281,43 @@
             const message = messages[Math.min(comboLevel, messages.length - 1)] || "UNBELIEVABLE!";
             elements.comboIndicator.textContent = `${message} ${comboLevel}x COMBO!`;
             elements.comboIndicator.classList.remove('active');
-            void elements.comboIndicator.offsetWidth; // Trigger reflow
+            void elements.comboIndicator.offsetWidth;
             elements.comboIndicator.classList.add('active');
+        }
+
+        // Custom Message
+        function showMessage(message) {
+            const modal = document.createElement('div');
+            modal.className = 'custom-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <p>${message}</p>
+                    <button class="control-btn">OK</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.querySelector('button').addEventListener('click', () => {
+                modal.remove();
+                soundManager.playButtonClick();
+            });
         }
 
         // Power-up: Hint
         function useHint() {
             if (enhancedState.powerUps.hint > 0 && gameState.gameStarted) {
+                soundManager.resumeAudio();
                 soundManager.playPowerUp('hint');
                 
                 const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched)'));
                 const unflipped = unmatchedCards.filter(card => !card.classList.contains('flipped'));
                 
                 if (unflipped.length >= 2) {
-                    // Find a matching pair
                     const symbols = {};
                     let matchFound = false;
                     
                     for (const card of unflipped) {
                         const symbol = card.dataset.symbol;
                         if (symbols[symbol]) {
-                            // Found a match - highlight these cards
                             highlightCards([symbols[symbol], card]);
                             enhancedState.powerUps.hint--;
                             updatePowerUpButtons();
@@ -1882,15 +2328,15 @@
                     }
                     
                     if (!matchFound) {
-                        alert("No matches available to hint!");
+                        showMessage("No matches available to hint!");
                     }
                 } else {
-                    alert("Not enough cards left to use hint!");
+                    showMessage("Not enough cards left to use hint!");
                 }
             }
         }
 
-        // Highlight cards with a glow effect
+        // Highlight cards
         function highlightCards(cards) {
             cards.forEach(card => {
                 card.style.boxShadow = '0 0 20px var(--accent)';
@@ -1903,20 +2349,18 @@
         // Power-up: Shuffle
         function useShuffle() {
             if (enhancedState.powerUps.shuffle > 0 && gameState.gameStarted) {
+                soundManager.resumeAudio();
                 soundManager.playPowerUp('shuffle');
                 
-                // Only shuffle unmatched cards
                 const unmatchedCards = Array.from(document.querySelectorAll('.card:not(.matched)'));
                 const indices = unmatchedCards.map(card => parseInt(card.dataset.index));
                 const symbols = unmatchedCards.map(card => card.dataset.symbol);
                 
-                // Shuffle the symbols
                 for (let i = symbols.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [symbols[i], symbols[j]] = [symbols[j], symbols[i]];
                 }
                 
-                // Update the cards with new symbols
                 unmatchedCards.forEach((card, i) => {
                     card.dataset.symbol = symbols[i];
                     const cardFront = card.querySelector('.card-front');
@@ -1926,30 +2370,31 @@
                 enhancedState.powerUps.shuffle--;
                 updatePowerUpButtons();
                 
-                // Visual feedback
                 elements.gameBoard.style.animation = 'none';
-                void elements.gameBoard.offsetWidth; // Trigger reflow
+                void elements.gameBoard.offsetWidth;
                 elements.gameBoard.style.animation = 'shuffleEffect 0.5s';
+                
+                gameStats.powerupsUsed++;
+                saveGameData();
             }
         }
 
         // Power-up: Freeze Time
         function useFreeze() {
             if (enhancedState.powerUps.freeze > 0 && gameState.gameStarted && !enhancedState.freezeTimeActive) {
+                soundManager.resumeAudio();
                 soundManager.playPowerUp('freeze');
                 
                 enhancedState.freezeTimeActive = true;
-                enhancedState.freezeTimeRemaining = 10; // 10 seconds
+                enhancedState.freezeTimeRemaining = 10;
                 enhancedState.powerUps.freeze--;
                 updatePowerUpButtons();
                 
-                // Visual feedback
                 document.body.style.filter = 'hue-rotate(180deg)';
                 setTimeout(() => {
                     document.body.style.filter = '';
                 }, 500);
                 
-                // Count down freeze time
                 const freezeInterval = setInterval(() => {
                     enhancedState.freezeTimeRemaining--;
                     
@@ -1958,14 +2403,17 @@
                         clearInterval(freezeInterval);
                     }
                 }, 1000);
+                
+                gameStats.powerupsUsed++;
+                saveGameData();
             }
         }
 
-        // Update power-up button states
+        // Update power-up buttons
         function updatePowerUpButtons() {
-            elements.hintBtn.textContent = `💡 Hint (${enhancedState.powerUps.hint})`;
-            elements.shuffleBtn.textContent = `🔄 Shuffle (${enhancedState.powerUps.shuffle})`;
-            elements.freezeBtn.textContent = `⏸️ Freeze (${enhancedState.powerUps.freeze})`;
+            elements.hintBtn.textContent = `${config.powerUps.hint.icon} Hint (${enhancedState.powerUps.hint})`;
+            elements.shuffleBtn.textContent = `${config.powerUps.shuffle.icon} Shuffle (${enhancedState.powerUps.shuffle})`;
+            elements.freezeBtn.textContent = `${config.powerUps.freeze.icon} Freeze (${enhancedState.powerUps.freeze})`;
             
             elements.hintBtn.disabled = enhancedState.powerUps.hint <= 0;
             elements.shuffleBtn.disabled = enhancedState.powerUps.shuffle <= 0;
@@ -1976,28 +2424,23 @@
         function resetGame() {
             clearInterval(gameState.timerInterval);
             
-            // Set game board based on difficulty
             const settings = difficultySettings[gameState.currentDifficulty];
             elements.gameBoard.className = `game-board ${gameState.currentDifficulty}`;
-            elements.gameBoard.style.gridTemplateColumns = `repeat(${settings.cols}, 1fr)`;
             gameState.totalPairs = (settings.rows * settings.cols) / 2;
             
-            // Create card pairs from current theme
             const themeSymbols = themes[gameState.currentTheme].symbols.slice(0, gameState.totalPairs);
             gameState.cards = [...themeSymbols, ...themeSymbols];
             
-            // Shuffle cards
             shuffleCards();
             
-            // Clear the game board
             elements.gameBoard.innerHTML = '';
             
-            // Create card elements
             gameState.cards.forEach((symbol, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.dataset.symbol = symbol;
                 card.dataset.index = index;
+                card.tabIndex = 0; // For keyboard
                 
                 const cardFront = document.createElement('div');
                 cardFront.className = 'card-front';
@@ -2010,47 +2453,48 @@
                 card.appendChild(cardBack);
                 
                 card.addEventListener('click', () => flipCard(card));
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        flipCard(card);
+                    }
+                });
                 
                 elements.gameBoard.appendChild(card);
             });
             
-            // Reset game state
             gameState.flippedCards = [];
             gameState.matchedPairs = 0;
             gameState.moves = 0;
             gameState.timer = 0;
             gameState.score = 0;
             gameState.gameStarted = false;
+            gameState.gamePaused = false;
             
-            // Reset enhanced state
             enhancedState.currentCombo = 0;
             enhancedState.maxCombo = 0;
             enhancedState.streakMultiplier = 1;
             enhancedState.powerUps = {
-                hint: 3,
-                shuffle: 2,
-                freeze: 1
+                hint: config.powerUps.hint.count,
+                shuffle: config.powerUps.shuffle.count,
+                freeze: config.powerUps.freeze.count
             };
             enhancedState.freezeTimeActive = false;
             enhancedState.freezeTimeRemaining = 0;
             
-            // Reset multiplayer state
             gameState.playerScores = [0, 0];
             gameState.currentPlayer = 0;
             
-            // Hide the game board and show start message
             elements.gameBoard.classList.remove('visible');
             elements.startMessage.style.display = 'flex';
             
-            // Update displays
             updateGameDisplay();
             updatePowerUpButtons();
             updateMultiplayerDisplay();
             
-            // Update the start button text
             elements.startBtn.textContent = 'START GAME';
+            elements.pauseBtn.style.display = 'none';
             
-            // Reset progress bar
             elements.progressFill.style.width = '0%';
         }
 
@@ -2064,7 +2508,7 @@
 
         // Flip a card
         function flipCard(card) {
-            if (!gameState.gameStarted || card.classList.contains('flipped') || 
+            if (!gameState.gameStarted || gameState.gamePaused || card.classList.contains('flipped') || 
                 gameState.flippedCards.length === 2 || card.classList.contains('matched')) {
                 return;
             }
@@ -2091,27 +2535,22 @@
                 card2.classList.add('matched');
                 gameState.matchedPairs++;
                 
-                // Calculate and add score
                 const matchScore = calculateScore(true);
                 gameState.score += matchScore;
                 
-                // In multiplayer mode, add score to current player
                 if (gameState.isMultiplayer) {
                     gameState.playerScores[gameState.currentPlayer] += matchScore;
                     updateMultiplayerDisplay();
                 }
                 
-                // Create particle effects
                 createParticles(card1);
                 createParticles(card2);
                 
                 soundManager.playMatch();
                 
-                // Update progress bar
                 const progress = (gameState.matchedPairs / gameState.totalPairs) * 100;
                 elements.progressFill.style.width = `${progress}%`;
                 
-                // Check for win
                 if (gameState.matchedPairs === gameState.totalPairs) {
                     endGame();
                 }
@@ -2124,16 +2563,14 @@
                     card2.classList.remove('flipped', 'mismatch');
                 }, 1000);
                 
-                calculateScore(false); // Reset combo
+                calculateScore(false);
                 soundManager.playMismatch();
                 
-                // In multiplayer mode, switch player after mismatch
                 if (gameState.isMultiplayer) {
                     switchPlayer();
                 }
             }
             
-            // Update combo display
             elements.comboDisplay.textContent = enhancedState.currentCombo;
             
             gameState.flippedCards = [];
@@ -2151,11 +2588,9 @@
                 const particle = document.createElement('div');
                 particle.className = 'particle';
                 
-                // Random color based on theme
                 const hue = Math.random() * 360;
                 particle.style.background = `hsl(${hue}, 70%, 60%)`;
                 
-                // Random direction and distance
                 const angle = (i / 8) * Math.PI * 2;
                 const distance = 50 + Math.random() * 50;
                 const tx = Math.cos(angle) * distance;
@@ -2168,7 +2603,6 @@
                 
                 document.body.appendChild(particle);
                 
-                // Remove particle after animation
                 setTimeout(() => {
                     if (particle.parentNode) {
                         particle.parentNode.removeChild(particle);
@@ -2184,17 +2618,17 @@
             gameState.gameStarted = true;
             gameStats.gamesPlayed++;
             updateStatsDisplay();
+            saveGameData();
             
-            // Hide start message and show game board
             elements.startMessage.style.display = 'none';
             elements.gameBoard.classList.add('visible');
             
-            // Update the start button text to "RESTART GAME"
             elements.startBtn.textContent = 'RESTART GAME';
+            elements.pauseBtn.style.display = 'inline-block';
+            elements.pauseBtn.textContent = 'PAUSE GAME';
             
-            // Start timer (if freeze time is not active)
             gameState.timerInterval = setInterval(() => {
-                if (!enhancedState.freezeTimeActive) {
+                if (!enhancedState.freezeTimeActive && gameState.gameStarted && !gameState.gamePaused) {
                     gameState.timer++;
                     elements.timerDisplay.textContent = `${gameState.timer}s`;
                 }
@@ -2211,19 +2645,18 @@
             if (gameState.score > gameStats.highestScore) gameStats.highestScore = gameState.score;
             if (enhancedState.maxCombo > gameStats.highestCombo) gameStats.highestCombo = enhancedState.maxCombo;
             
-            // Check achievements
             checkAchievements();
+            checkCardUnlocks();
             
-            // Play win sound
             soundManager.playWin();
             
-            // Show win animation
             showWinAnimation();
+            
+            saveGameData();
         }
 
         // Show win animation
         function showWinAnimation() {
-            // Determine winner in multiplayer mode
             let winnerText = "VICTORY!";
             if (gameState.isMultiplayer) {
                 if (gameState.playerScores[0] > gameState.playerScores[1]) {
@@ -2237,7 +2670,6 @@
             
             elements.winTitle.textContent = winnerText;
             
-            // Populate win stats
             let winStatsHTML = '';
             
             if (gameState.isMultiplayer) {
@@ -2278,7 +2710,6 @@
             
             elements.winStats.innerHTML = winStatsHTML;
             
-            // Show the win animation
             elements.winAnimation.classList.add('active');
         }
 
@@ -2286,45 +2717,63 @@
         function checkAchievements() {
             let earnedNew = false;
             
-            // First win
             if (!achievements[0].earned && gameStats.gamesWon > 0) {
                 achievements[0].earned = true;
                 earnedNew = true;
                 soundManager.playAchievement();
             }
             
-            // Speed demon (under 60 seconds)
             if (!achievements[1].earned && gameState.timer < 60) {
                 achievements[1].earned = true;
                 earnedNew = true;
                 soundManager.playAchievement();
             }
             
-            // Perfect game (no extra moves)
             if (!achievements[2].earned && gameState.moves <= gameState.totalPairs + 5) {
                 achievements[2].earned = true;
                 earnedNew = true;
                 soundManager.playAchievement();
             }
             
-            // Combo master
             if (!achievements[3].earned && enhancedState.maxCombo >= 5) {
                 achievements[3].earned = true;
                 earnedNew = true;
                 soundManager.playAchievement();
             }
             
-            // Night owl
             if (!achievements[4].earned && gameStats.gamesPlayed >= 10) {
                 achievements[4].earned = true;
                 earnedNew = true;
                 soundManager.playAchievement();
             }
             
-            // Update achievements display if needed
             if (earnedNew) {
                 updateAchievementsDisplay();
+                saveGameData();
             }
+        }
+
+        // Check Card Unlocks
+        function checkCardUnlocks() {
+            if (gameState.score >= 2000 && !cardCollection[0].unlocked) {
+                cardCollection[0].unlocked = true;
+                gameStats.cardsCollected++;
+                soundManager.playAchievement();
+            }
+            if (gameState.timer < 60 && !cardCollection[1].unlocked) {
+                cardCollection[1].unlocked = true;
+                gameStats.cardsCollected++;
+                soundManager.playAchievement();
+            }
+            if (enhancedState.maxCombo >= 5 && !cardCollection[2].unlocked) {
+                cardCollection[2].unlocked = true;
+                gameStats.cardsCollected++;
+                soundManager.playAchievement();
+            }
+            // Add more conditions as needed
+            
+            updateCardCollectionDisplay();
+            saveGameData();
         }
 
         // Update achievements display
@@ -2357,7 +2806,7 @@
                 { name: 'Highest Score', value: gameStats.highestScore },
                 { name: 'Highest Combo', value: gameStats.highestCombo },
                 { name: 'Power-ups Used', value: gameStats.powerupsUsed },
-                { name: 'Cards Collected', value: gameStats.cardsCollected + '/' + cardCollection.length }
+                { name: 'Cards Collected', value: `${gameStats.cardsCollected}/${cardCollection.length}` }
             ];
             
             stats.forEach(stat => {
@@ -2396,7 +2845,6 @@
             gameState.isMultiplayer = !gameState.isMultiplayer;
             elements.multiplayerBtn.textContent = `MULTIPLAYER: ${gameState.isMultiplayer ? 'ON' : 'OFF'}`;
             
-            // Show/hide multiplayer indicator
             elements.multiplayerIndicator.style.display = gameState.isMultiplayer ? 'flex' : 'none';
             
             resetGame();
@@ -2410,11 +2858,9 @@
 
         // Update multiplayer display
         function updateMultiplayerDisplay() {
-            // Update player scores
             elements.player1Score.textContent = gameState.playerScores[0];
             elements.player2Score.textContent = gameState.playerScores[1];
             
-            // Update active player indicator
             elements.player1Indicator.classList.toggle('active', gameState.currentPlayer === 0);
             elements.player2Indicator.classList.toggle('active', gameState.currentPlayer === 1);
         }
