@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Retro Card Match</title>
-    <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js" async></script>
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
     <style>
         :root {
             --primary: #ff00ff;
@@ -29,23 +29,6 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-        .high-contrast-mode {
-            --primary: #ffffff;
-            --secondary: #000000;
-            --accent: #ffff00;
-            --background: #000000;
-            --card-bg: #333333;
-            --text: #ffffff;
-            filter: contrast(150%);
-        }
-        .colorblind-mode {
-            --primary: #009292;
-            --secondary: #ff6b6b;
-            --accent: #4ecdc4;
-            --success: #45b7d1;
-            --danger: #96ceb4;
-            --warning: #feca57;
-        }
         [data-theme="fantasy"] {
             --primary: #8B0000;
             --secondary: #FFD700;
@@ -66,6 +49,23 @@
             --secondary: #FFD700;
             --accent: #FF1493;
         }
+        .high-contrast-mode {
+            --primary: #ffffff;
+            --secondary: #000000;
+            --accent: #ffff00;
+            --background: #000000;
+            --card-bg: #333333;
+            --text: #ffffff;
+            filter: contrast(150%);
+        }
+        .colorblind-mode {
+            --primary: #009292;
+            --secondary: #ff6b6b;
+            --accent: #4ecdc4;
+            --success: #45b7d1;
+            --danger: #96ceb4;
+            --warning: #feca57;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -82,6 +82,10 @@
             opacity: 0;
             transition: opacity 0.5s ease;
             touch-action: manipulation;
+            user-select: none; /* Added for mobile anti-magnification */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         body.loaded {
             opacity: 1;
@@ -816,6 +820,20 @@
             text-align: center;
             text-shadow: 2px 2px 0 #000;
         }
+        .synced-badge {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            display: none;
+            text-align: center;
+        }
+        .synced-badge.active {
+            display: block;
+        }
         .stat-item {
             margin-bottom: 18px;
             padding: 12px;
@@ -1372,6 +1390,7 @@
     <section id="statistics-screen" class="section" role="region">
         <div class="stats-container">
             <h2 class="stats-title">GAME STATISTICS</h2>
+            <div class="synced-badge" id="synced-badge">Synced Progress ☁️</div>
             <div id="stats-list" aria-label="Statistics List"></div>
             <div class="next-goal" id="next-goal"></div>
             <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
@@ -1396,26 +1415,24 @@
         // CrazyGames SDK Integration
         let CRAZYGAMES_ENV = 'disabled';
         let isCrazyGames = false;
-        function initCrazyGamesSDK() {
+        let gameStorage = localStorage;
+        async function initCrazyGamesSDK() {
             if (typeof window.CrazyGames === 'undefined' || !window.CrazyGames.SDK) {
                 console.log('CrazyGames SDK not available');
                 return;
             }
-            window.CrazyGames.SDK.getEnvironment().then(env => {
+            try {
+                await window.CrazyGames.SDK.init();
+                const env = await window.CrazyGames.SDK.getEnvironment();
                 CRAZYGAMES_ENV = env;
                 isCrazyGames = CRAZYGAMES_ENV === 'crazygames';
-                console.log('CrazyGames Environment:', CRAZYGAMES_ENV);
                 if (isCrazyGames) {
-                    // Optimize: Add ad event listeners for muting audio during ads
-                    window.CrazyGames.SDK.addAdEventListener({
-                        adStarted: () => NEW_AUDIO_MANAGER.mute(),
-                        adFinished: () => NEW_AUDIO_MANAGER.unmute(),
-                        adError: () => NEW_AUDIO_MANAGER.unmute()
-                    });
+                    gameStorage = window.CrazyGames.SDK.data;
                 }
-            }).catch(e => {
+                console.log('CrazyGames Environment:', CRAZYGAMES_ENV);
+            } catch (e) {
                 console.log('CrazyGames SDK init failed:', e);
-            });
+            }
         }
         async function callCrazyGamesEvent(eventFn, ...args) {
             if (!isCrazyGames) return;
@@ -1520,6 +1537,7 @@
             achievementsList: document.getElementById('achievements-list'),
             statsList: document.getElementById('stats-list'),
             nextGoal: document.getElementById('next-goal'),
+            syncedBadge: document.getElementById('synced-badge'),
             cardCollectionContainer: document.getElementById('card-collection'),
             comboIndicator: document.getElementById('combo-indicator'),
             winAnimation: document.getElementById('win-animation'),
@@ -1629,7 +1647,7 @@
             saveTimeout = setTimeout(saveGameData, SAVE_DEBOUNCE_MS);
         }
         function loadGameData() {
-            const saved = localStorage.getItem(STORAGE_KEY);
+            const saved = gameStorage.getItem(STORAGE_KEY);
             if (saved) {
                 const data = JSON.parse(saved);
                 Object.assign(GAME_STATE.options, data.options || {});
@@ -1645,7 +1663,7 @@
                 achievements: ACHIEVEMENTS.reduce((acc, ach) => ({ ...acc, [ach.id]: ach.earned }), {}),
                 cardCollection: CARD_COLLECTION.reduce((acc, card) => ({ ...acc, [card.id]: card.unlocked }), {})
             };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            gameStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1666,83 +1684,139 @@
                 try {
                     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
                     if (!gl) throw new Error('WebGL not supported');
+                    // Set initial canvas dimensions using window size to avoid zero size issues
                     const dpr = window.devicePixelRatio || 1;
-                    canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
+                    const width = window.innerWidth * dpr;
+                    const height = window.innerHeight * dpr;
+                    canvas.width = width;
+                    canvas.height = height;
+                    gl.viewport(0, 0, width, height);
                     canvas.style.width = canvas.style.height = '100%';
-                    gl.viewport(0, 0, canvas.width, canvas.height);
                     const vsSource = document.getElementById('vertex-shader').textContent, fsSource = document.getElementById('fragment-shader').textContent;
                     const vs = gl.createShader(gl.VERTEX_SHADER), fs = gl.createShader(gl.FRAGMENT_SHADER);
-                    gl.shaderSource(vs, vsSource).compileShader(vs);
-                    gl.shaderSource(fs, fsSource).compileShader(fs);
-                    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS) || !gl.getShaderParameter(fs, gl.COMPILE_STATUS)) throw new Error('Shader compilation failed');
+                    gl.shaderSource(vs, vsSource);
+                    gl.compileShader(vs);
+                    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+                        const infoLog = gl.getShaderInfoLog(vs);
+                        console.error('Vertex shader compilation error:', infoLog);
+                        gl.deleteShader(vs);
+                        throw new Error(`Vertex shader compilation failed: ${infoLog}`);
+                    }
+                    gl.shaderSource(fs, fsSource);
+                    gl.compileShader(fs);
+                    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+                        const infoLog = gl.getShaderInfoLog(fs);
+                        console.error('Fragment shader compilation error:', infoLog);
+                        gl.deleteShader(fs);
+                        throw new Error(`Fragment shader compilation failed: ${infoLog}`);
+                    }
                     program = gl.createProgram();
-                    gl.attachShader(program, vs).attachShader(program, fs).linkProgram(program);
-                    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error('Program link failed');
+                    gl.attachShader(program, vs);
+                    gl.attachShader(program, fs);
+                    gl.linkProgram(program);
+                    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                        const infoLog = gl.getProgramInfoLog(program);
+                        console.error('Program linking error:', infoLog);
+                        gl.deleteProgram(program);
+                        throw new Error(`Program linking failed: ${infoLog}`);
+                    }
                     gl.useProgram(program);
                     const vertices = new Float32Array([-1,-1, 1,-1, -1,1, 1,-1, 1,1, -1,1]);
                     vbo = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, vbo).bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
                     const positionLoc = gl.getAttribLocation(program, 'a_position');
-                    gl.enableVertexAttribArray(positionLoc).vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+                    gl.enableVertexAttribArray(positionLoc);
+                    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
                     uTime = gl.getUniformLocation(program, 'u_time');
                     uResolution = gl.getUniformLocation(program, 'u_resolution');
                     uColor1Loc = gl.getUniformLocation(program, 'u_color1');
                     uColor2Loc = gl.getUniformLocation(program, 'u_color2');
                     uColor3Loc = gl.getUniformLocation(program, 'u_color3');
                     const themeColors = CONFIG.themeColors[GAME_STATE.currentTheme] || CONFIG.themeColors.retro;
-                    [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => loc && gl.uniform3fv(loc, new Float32Array([themeColors.primary, themeColors.secondary, themeColors.accent][i])));
+                    const colorArrays = [themeColors.primary, themeColors.secondary, themeColors.accent];
+                    [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => {
+                        if (loc) {
+                            gl.uniform3fv(loc, new Float32Array(colorArrays[i]));
+                        }
+                    });
+                    gl.uniform2f(uResolution, canvas.width, canvas.height);
                     const debouncedResize = () => {
                         if (resizeTimeout) clearTimeout(resizeTimeout);
                         resizeTimeout = setTimeout(() => {
                             const dpr = window.devicePixelRatio || 1;
-                            canvas.width = canvas.clientWidth * dpr; canvas.height = canvas.clientHeight * dpr;
-                            if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+                            const width = canvas.clientWidth * dpr || window.innerWidth * dpr;
+                            const height = canvas.clientHeight * dpr || window.innerHeight * dpr;
+                            canvas.width = width;
+                            canvas.height = height;
+                            if (gl) gl.viewport(0, 0, width, height);
+                            if (uResolution) gl.uniform2f(uResolution, width, height);
                         }, 100);
                     };
                     window.addEventListener('resize', debouncedResize);
+                    // Trigger initial resize
                     debouncedResize();
-                    function render(currentTime) {
-                        frameCount++;
-                        const throttle = GAME_STATE.options['low-performance'] ? 4 : 1;
-                        if (frameCount % throttle !== 0) return requestAnimationFrame(render);
-                        uTime && gl.uniform1f(uTime, currentTime * 0.001);
-                        uResolution && gl.uniform2f(uResolution, canvas.width, canvas.height);
-                        const themeColors = CONFIG.themeColors[GAME_STATE.currentTheme] || CONFIG.themeColors.retro;
-                        [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => loc && gl.uniform3fv(loc, new Float32Array([themeColors.primary, themeColors.secondary, themeColors.accent][i])));
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
-                        renderLoopId = requestAnimationFrame(render);
-                    }
-                    render(performance.now());
                     isWebGLSupported = true;
                 } catch (error) {
                     console.error('WebGL init failed:', error);
                     if (renderLoopId) cancelAnimationFrame(renderLoopId);
                     canvas.style.display = 'none';
-                    if (!isDynamicBGEnabled) {
-                        dynamicBg.style.display = 'none';
-                        document.body.classList.add('fallback-bg');
-                    }
+                    dynamicBg.style.display = 'none';
+                    document.body.classList.add('fallback-bg');
                     isWebGLSupported = false;
                 }
+                window.isWebGLSupported = isWebGLSupported;
             }
             window.initWebGL = initWebGL;
             window.updateShaderColors = theme => {
                 if (!gl || !isWebGLSupported) return;
                 const themeColors = CONFIG.themeColors[theme] || CONFIG.themeColors.retro;
-                [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => loc && gl.uniform3fv(loc, new Float32Array([themeColors.primary, themeColors.secondary, themeColors.accent][i])));
+                const colorArrays = [themeColors.primary, themeColors.secondary, themeColors.accent];
+                [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => {
+                    if (loc) {
+                        gl.uniform3fv(loc, new Float32Array(colorArrays[i]));
+                    }
+                });
             };
             window.toggleDynamicBG = enabled => {
                 isDynamicBGEnabled = enabled;
-                if (enabled) {
+                if (enabled && isWebGLSupported) {
                     dynamicBg.style.display = 'block';
                     document.body.classList.remove('fallback-bg');
+                    const dpr = window.devicePixelRatio || 1;
+                    const width = canvas.clientWidth * dpr || window.innerWidth * dpr;
+                    const height = canvas.clientHeight * dpr || window.innerHeight * dpr;
+                    canvas.width = width;
+                    canvas.height = height;
+                    canvas.style.width = canvas.style.height = '100%';
+                    if (gl) gl.viewport(0, 0, width, height);
+                    if (uResolution) gl.uniform2f(uResolution, width, height);
                     if (program && !renderLoopId) renderLoopId = requestAnimationFrame(render);
                 } else {
                     dynamicBg.style.display = 'none';
                     document.body.classList.add('fallback-bg');
-                    if (renderLoopId) cancelAnimationFrame(renderLoopId), renderLoopId = null;
+                    if (renderLoopId) {
+                        cancelAnimationFrame(renderLoopId);
+                        renderLoopId = null;
+                    }
                 }
             };
+            function render(currentTime) {
+                if (!isDynamicBGEnabled || !gl || canvas.width === 0 || canvas.height === 0) {
+                    renderLoopId = requestAnimationFrame(render);
+                    return;
+                }
+                frameCount++;
+                const throttle = GAME_STATE.options['low-performance'] ? 4 : 1;
+                if (frameCount % throttle !== 0) {
+                    renderLoopId = requestAnimationFrame(render);
+                    return;
+                }
+                if (uTime) gl.uniform1f(uTime, currentTime * 0.001);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                renderLoopId = requestAnimationFrame(render);
+            }
+            window.renderWebGL = render;
         })();
         // Game Logic Functions
         let currentBGMUrl = '';
@@ -1754,10 +1828,12 @@
                 ELEMENTS.bgMusic.load();
             }
         }
-        async function initGame() {
+        function updateSyncedBadge() {
             if (isCrazyGames) {
-                callCrazyGamesEvent(() => window.CrazyGames.SDK.game.sdkGameLoadingStart());
+                ELEMENTS.synced-badge.classList.add('active');
             }
+        }
+        async function initGame() {
             loadGameData();
             GAME_STATE.currentDifficulty = GAME_STATE.options.difficulty || 'easy';
             GAME_STATE.currentTheme = GAME_STATE.options.theme || 'retro';
@@ -1765,24 +1841,40 @@
             NEW_AUDIO_MANAGER.soundEnabled = GAME_STATE.options.sound ?? true;
             updateAllOptionButtons();
             updateThemeColors(GAME_STATE.currentTheme);
-            // Defer heavy inits
-            requestIdleCallback(() => {
-                initCrazyGamesSDK();
-                if (GAME_STATE.options['dynamic-bg']) {
-                    window.initWebGL();
+            // Defer only CrazyGames SDK init
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(async () => {
+                    await initCrazyGamesSDK();
+                    if (isCrazyGames) {
+                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
+                        loadGameData(); // Reload from cloud data if available
+                    }
+                });
+            } else {
+                setTimeout(async () => {
+                    await initCrazyGamesSDK();
+                    if (isCrazyGames) {
+                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
+                        loadGameData();
+                    }
+                }, 0);
+            }
+            // Initialize dynamic background immediately for faster visibility
+            document.body.classList.add('fallback-bg');
+            if (GAME_STATE.options['dynamic-bg']) {
+                window.initWebGL();
+                if (window.isWebGLSupported) {
                     window.toggleDynamicBG(true);
                     createBackgroundParticles();
-                } else {
-                    document.body.classList.add('fallback-bg');
                 }
-            });
-            // Hide loading faster, since critical path is done
-            setTimeout(() => {
+            }
+            // Hide loading indicator
+            setTimeout(async () => {
                 ELEMENTS.loadingIndicator.style.opacity = '0';
-                setTimeout(() => {
+                setTimeout(async () => {
                     ELEMENTS.loadingIndicator.style.display = 'none';
                     if (isCrazyGames) {
-                        callCrazyGamesEvent(() => window.CrazyGames.SDK.game.sdkGameLoadingStop());
+                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStop());
                     }
                 }, 300);
                 document.body.classList.add('loaded');
@@ -1854,7 +1946,10 @@
                     resetGame();
                 }
                 if (sectionId === 'achievements-screen') updateAchievementsDisplay();
-                else if (sectionId === 'statistics-screen') updateStatsDisplay();
+                else if (sectionId === 'statistics-screen') {
+                    updateStatsDisplay();
+                    updateSyncedBadge();
+                }
                 else if (sectionId === 'collection-screen') updateCardCollectionDisplay();
             }
             if (NEW_AUDIO_MANAGER.musicEnabled) {
@@ -1910,8 +2005,9 @@
             let touchStartX = 0, touchStartY = 0;
             ELEMENTS.gameBoard.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, { passive: true });
             ELEMENTS.gameBoard.addEventListener('touchend', e => {
-                const deltaX = e.changedTouches[0].clientX - touchStartX, deltaY = e.changedTouches[0].clientY - touchStartY;
-                if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+                const deltaX = e.changedTouches[0].clientX - touchStartX;
+                const deltaY = e.changedTouches[0].clientY - touchStartY;
+                if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
                     const card = document.elementFromPoint(touchStartX, touchStartY);
                     if (card?.classList.contains('card')) flipCard(card);
                 }
@@ -1976,10 +2072,6 @@
             });
         }
         function updateThemeColors(theme) {
-            const colors = CONFIG.themeColors[theme] || CONFIG.themeColors.retro;
-            Object.entries({ primary: 0, secondary: 1, accent: 2 }).forEach(([key, i]) => {
-                document.documentElement.style.setProperty(`--${key}`, `rgb(${colors.primary[i] * 255 | 0}, ${colors.secondary[i] * 255 | 0}, ${colors.accent[i] * 255 | 0})`);
-            });
             document.body.dataset.theme = theme;
             window.updateShaderColors(theme);
             updateBGM(theme);
@@ -2111,7 +2203,16 @@
             debounceSave();
         }
         function highlightCards(cards) {
-            cards.forEach(card => card.element && (card.element.style.borderColor = 'yellow', setTimeout(() => card.element.style.borderColor = '', 2000)));
+            cards.forEach(card => {
+                if (card.element) {
+                    card.element.style.border = '3px solid yellow';
+                    setTimeout(() => {
+                        if (card.element) {
+                            card.element.style.border = '';
+                        }
+                    }, 2000);
+                }
+            });
         }
         async function useShuffle() {
             if (ENHANCED_STATE.powerUps.shuffle-- <= 0 || !GAME_STATE.gameStarted || GAME_STATE.flippedCards.length >= 2) return;
@@ -2270,6 +2371,7 @@
         }
         function createParticles(cardElement, count) {
             const rect = cardElement.getBoundingClientRect(), x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
+            const particles = [];
             const fn = () => {
                 const fragment = document.createDocumentFragment();
                 for (let i = 0; i < count; i++) {
@@ -2281,13 +2383,17 @@
                     p.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`);
                     p.style.setProperty('--ty', `${Math.random() * -50}px`);
                     fragment.appendChild(p);
+                    particles.push(p);
                 }
                 document.body.appendChild(fragment);
-                setTimeout(() => document.querySelectorAll('.particle').forEach(p => p.remove()), 1000);
             };
             (GAME_STATE.options['low-performance'] ? (window.requestIdleCallback || requestAnimationFrame) : fn).call(null, fn);
+            setTimeout(() => particles.forEach(p => p.remove()), 1000);
         }
         async function startGame() {
+            if (isCrazyGames) {
+                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
+            }
             GAME_STATE.gameStarted = true;
             GAME_STATE.totalPairs = (CONFIG.difficultySettings[GAME_STATE.currentDifficulty].rows * CONFIG.difficultySettings[GAME_STATE.currentDifficulty].cols) / 2;
             ELEMENTS.matchesDisplay.textContent = `0/${GAME_STATE.totalPairs}`;
@@ -2319,15 +2425,15 @@
             ELEMENTS.scoreDisplay.textContent = GAME_STATE.playerScores[GAME_STATE.isMultiplayer ? GAME_STATE.currentPlayer : 0];
             updateGameDisplay();
             GAME_STATS.gamesPlayed++;
-            if (isCrazyGames) {
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-            }
             checkAchievementsFromStats();
             debounceSave();
         }
         async function endGame() {
             clearIntervals();
             GAME_STATE.gameStarted = false;
+            if (isCrazyGames) {
+                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.happytime());
+            }
             GAME_STATS.gamesWon++;
             GAME_STATS.totalMoves += GAME_STATE.moves;
             GAME_STATS.totalTime += GAME_STATE.timer;
