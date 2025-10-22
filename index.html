@@ -1215,7 +1215,7 @@
         }
     </script>
     <!-- New Audio Elements -->
-    <audio id="bg-music" loop preload="none">
+    <audio id="bg-music" loop preload="auto">
         <source src="https://soundimage.org/wp-content/uploads/2017/07/Arcade-Puzzler.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -1594,9 +1594,19 @@
                 osc.start(ctx.currentTime);
                 osc.stop(ctx.currentTime + duration);
             },
-            playBGM() {
-                if (this.musicEnabled && !this.isMuted && ELEMENTS.bgMusic) {
-                    ELEMENTS.bgMusic.play().catch(e => console.warn('BGM play failed', e));
+            async playBGM() {
+                if (!this.musicEnabled || this.isMuted || !ELEMENTS.bgMusic) return;
+                const currentUrl = currentBGMUrl || CONFIG.bgmUrls[GAME_STATE.currentTheme] || CONFIG.bgmUrls.retro;
+                if (!ELEMENTS.bgMusic.src || ELEMENTS.bgMusic.src.indexOf(currentUrl.split('/').pop()) === -1) {
+                    await updateBGM(GAME_STATE.currentTheme);
+                    return;
+                }
+                if (ELEMENTS.bgMusic.paused) {
+                    try {
+                        await ELEMENTS.bgMusic.play();
+                    } catch (e) {
+                        console.warn('BGM play failed', e);
+                    }
                 }
             },
             stopBGM() {
@@ -1605,10 +1615,10 @@
                     ELEMENTS.bgMusic.currentTime = 0;
                 }
             },
-            toggleMusic() {
+            async toggleMusic() {
                 this.musicEnabled = !this.musicEnabled;
                 if (this.musicEnabled) {
-                    this.playBGM();
+                    await this.playBGM();
                 } else {
                     this.stopBGM();
                 }
@@ -1642,6 +1652,7 @@
         const STORAGE_KEY = 'retroCardMatch';
         const SAVE_DEBOUNCE_MS = 500;
         let saveTimeout = null;
+        let currentBGMUrl = '';
         function debounceSave() {
             if (saveTimeout) clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveGameData, SAVE_DEBOUNCE_MS);
@@ -1819,14 +1830,40 @@
             window.renderWebGL = render;
         })();
         // Game Logic Functions
-        let currentBGMUrl = '';
-        function updateBGM(theme) {
+        async function updateBGM(theme) {
             const url = CONFIG.bgmUrls[theme] || CONFIG.bgmUrls.retro;
-            if (ELEMENTS.bgMusic.src !== url) {
+            if (ELEMENTS.bgMusic.src.indexOf(url.split('/').pop()) === -1) {
                 currentBGMUrl = url;
                 ELEMENTS.bgMusic.src = url;
-                ELEMENTS.bgMusic.load();
+                if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted) {
+                    try {
+                        await new Promise((resolve, reject) => {
+                            const onLoaded = () => {
+                                ELEMENTS.bgMusic.play().then(resolve).catch(reject);
+                            };
+                            const onError = (e) => reject(e);
+                            ELEMENTS.bgMusic.addEventListener('canplaythrough', onLoaded, {once: true});
+                            ELEMENTS.bgMusic.addEventListener('error', onError, {once: true});
+                            ELEMENTS.bgMusic.load();
+                        });
+                    } catch (e) {
+                        console.warn('BGM load/play failed for theme', theme, e);
+                    }
+                } else {
+                    ELEMENTS.bgMusic.load();
+                }
+            } else if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted && ELEMENTS.bgMusic.paused) {
+                try {
+                    await ELEMENTS.bgMusic.play();
+                } catch (e) {
+                    console.warn('BGM resume failed', e);
+                }
             }
+        }
+        async function updateThemeColors(theme) {
+            document.body.dataset.theme = theme;
+            window.updateShaderColors(theme);
+            await updateBGM(theme);
         }
         function updateSyncedBadge() {
             if (isCrazyGames) {
@@ -1840,7 +1877,7 @@
             NEW_AUDIO_MANAGER.musicEnabled = GAME_STATE.options.music ?? true;
             NEW_AUDIO_MANAGER.soundEnabled = GAME_STATE.options.sound ?? true;
             updateAllOptionButtons();
-            updateThemeColors(GAME_STATE.currentTheme);
+            await updateThemeColors(GAME_STATE.currentTheme);
             // Defer only CrazyGames SDK init
             if ('requestIdleCallback' in window) {
                 requestIdleCallback(async () => {
@@ -1879,8 +1916,7 @@
                 }, 300);
                 document.body.classList.add('loaded');
             }, 500);
-            // Simple audio init
-            NEW_AUDIO_MANAGER.initContext();
+            // Removed early initContext() to avoid premature AudioContext creation
             setupNavigation();
             initGameScreen();
             initOptionsScreen();
@@ -1924,7 +1960,6 @@
                     if (isEnteringGame && isCrazyGames) {
                         await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
                     }
-                    if (NEW_AUDIO_MANAGER.musicEnabled) NEW_AUDIO_MANAGER.playBGM();
                 });
             });
             ELEMENTS.continueBtn.addEventListener('click', async e => {
@@ -1934,7 +1969,7 @@
                 if (GAME_STATE.gameStarted && isCrazyGames) {
                     await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
                 }
-                if (NEW_AUDIO_MANAGER.musicEnabled) NEW_AUDIO_MANAGER.playBGM();
+                if (NEW_AUDIO_MANAGER.musicEnabled) await NEW_AUDIO_MANAGER.playBGM();
             });
         }
         async function showSection(sectionId) {
@@ -1953,7 +1988,7 @@
                 else if (sectionId === 'collection-screen') updateCardCollectionDisplay();
             }
             if (NEW_AUDIO_MANAGER.musicEnabled) {
-                NEW_AUDIO_MANAGER.playBGM();
+                await NEW_AUDIO_MANAGER.playBGM();
             }
         }
         function initGameScreen() {
@@ -2027,13 +2062,10 @@
                             break;
                         case 'theme':
                             GAME_STATE.options.theme = GAME_STATE.currentTheme = value;
-                            updateThemeColors(value);
-                            if (NEW_AUDIO_MANAGER.musicEnabled) {
-                                NEW_AUDIO_MANAGER.playBGM();
-                            }
+                            await updateThemeColors(value);
                             break;
                         case 'music':
-                            NEW_AUDIO_MANAGER.toggleMusic();
+                            await NEW_AUDIO_MANAGER.toggleMusic();
                             GAME_STATE.options.music = NEW_AUDIO_MANAGER.musicEnabled;
                             updatedValue = NEW_AUDIO_MANAGER.musicEnabled ? 'on' : 'off';
                             break;
@@ -2070,11 +2102,6 @@
                     updateOptionButtons(option, updatedValue, button);
                 });
             });
-        }
-        function updateThemeColors(theme) {
-            document.body.dataset.theme = theme;
-            window.updateShaderColors(theme);
-            updateBGM(theme);
         }
         function updateAllOptionButtons() {
             ['difficulty', 'theme', 'music', 'sound', 'colorblind', 'high-contrast', 'dynamic-bg', 'low-performance'].forEach(option => {
