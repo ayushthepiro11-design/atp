@@ -111,6 +111,16 @@
             max-width: 300px;
             color: var(--text);
         }
+        .modal-content h3 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        .modal-content p {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
         .modal-content button {
             background: linear-gradient(135deg, #ff6600, #cc3300);
             color: white;
@@ -1130,6 +1140,13 @@
         <div class="loading-spinner"></div>
         <div class="loading-text">LOADING...</div>
     </div>
+    <div class="custom-modal" id="music-modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Enable Background Music?</h3>
+            <p>Click to enable music for a better experience!</p>
+            <button id="enable-music-btn">Enable Music</button>
+        </div>
+    </div>
     <div class="dynamic-bg" id="dynamic-bg" style="display: none;">
         <canvas id="webgl-canvas"></canvas>
         <div class="bg-grid"></div>
@@ -1416,22 +1433,24 @@
         let CRAZYGAMES_ENV = 'disabled';
         let isCrazyGames = false;
         let gameStorage = localStorage;
+        let currentSection = 'home-screen';
         async function initCrazyGamesSDK() {
             if (typeof window.CrazyGames === 'undefined' || !window.CrazyGames.SDK) {
-                console.log('CrazyGames SDK not available');
+                console.log("CrazyGames SDK not found.");
                 return;
             }
             try {
                 await window.CrazyGames.SDK.init();
-                const env = await window.CrazyGames.SDK.getEnvironment();
-                CRAZYGAMES_ENV = env;
+                CRAZYGAMES_ENV = window.CrazyGames.SDK.environment;
                 isCrazyGames = CRAZYGAMES_ENV === 'crazygames';
                 if (isCrazyGames) {
                     gameStorage = window.CrazyGames.SDK.data;
+                    // **FIX**: Add SDK event listeners for mute/unmute
+                    window.CrazyGames.SDK.game.addEventListener('gameMuted', () => NEW_AUDIO_MANAGER.mute());
+                    window.CrazyGames.SDK.game.addEventListener('gameUnmuted', () => NEW_AUDIO_MANAGER.unmute());
                 }
-                console.log('CrazyGames Environment:', CRAZYGAMES_ENV);
             } catch (e) {
-                console.log('CrazyGames SDK init failed:', e);
+                console.warn('CrazyGames SDK initialization failed:', e);
             }
         }
         async function callCrazyGamesEvent(eventFn, ...args) {
@@ -1481,7 +1500,7 @@
             }
         };
         let GAME_STATE = {
-            options: { difficulty: 'easy', theme: 'retro', music: true, sound: true, colorblind: false, 'high-contrast': false, 'dynamic-bg': true, 'low-performance': false },
+            options: { difficulty: 'easy', theme: 'retro', music: false, sound: true, colorblind: false, 'high-contrast': false, 'dynamic-bg': true, 'low-performance': false },
             currentDifficulty: 'easy', currentTheme: 'retro', gameStarted: false, gamePaused: false, moves: 0, timer: 0, matchedPairs: 0, mismatches: 0,
             flippedCards: [], cards: [], playerScores: [0], currentPlayer: 0, totalPairs: 6, isMultiplayer: false, timerInterval: null, freezeInterval: null
         };
@@ -1544,7 +1563,9 @@
             winTitle: document.getElementById('win-title'),
             winStats: document.getElementById('win-stats'),
             continueBtn: document.getElementById('continue-btn'),
-            bgMusic: document.getElementById('bg-music')
+            bgMusic: document.getElementById('bg-music'),
+            musicModal: document.getElementById('music-modal'),
+            enableMusicBtn: document.getElementById('enable-music-btn')
         };
         // New Simple Audio Manager
         const NEW_AUDIO_MANAGER = {
@@ -1605,7 +1626,7 @@
                     try {
                         await ELEMENTS.bgMusic.play();
                     } catch (e) {
-                        console.warn('BGM play failed', e);
+                        console.warn('Failed to play BGM:', e);
                     }
                 }
             },
@@ -1623,9 +1644,16 @@
                     this.stopBGM();
                 }
             },
-            toggleSound() {
+            async toggleSound() {
                 this.soundEnabled = !this.soundEnabled;
                 this.updateMasterGain();
+                if (isCrazyGames) {
+                    if (this.soundEnabled) {
+                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameUnmuted());
+                    } else {
+                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameMuted());
+                    }
+                }
             },
             // Game-specific SFX
             async playFlip() {
@@ -1641,10 +1669,11 @@
                 await this.playTone(sfx.buttonFreq, 0.05, sfx.buttonType, 0.05);
             },
             async playWin() {
+                // keep calls consistent with playTone signature (freq, duration, type, volume)
                 await Promise.all([
                     this.playTone(523.25, 0.5, 'sine', 0.2),
-                    this.playTone(659.25, 0.5, 'sine', 0.2, 0.1),
-                    this.playTone(783.99, 0.5, 'sine', 0.2, 0.2)
+                    this.playTone(659.25, 0.5, 'sine', 0.2),
+                    this.playTone(783.99, 0.5, 'sine', 0.2)
                 ]);
             }
         };
@@ -1658,23 +1687,31 @@
             saveTimeout = setTimeout(saveGameData, SAVE_DEBOUNCE_MS);
         }
         function loadGameData() {
-            const saved = gameStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                const data = JSON.parse(saved);
-                Object.assign(GAME_STATE.options, data.options || {});
-                Object.assign(GAME_STATS, data.stats || {});
-                ACHIEVEMENTS.forEach(ach => ach.earned = data.achievements?.[ach.id] || false);
-                CARD_COLLECTION.forEach(card => card.unlocked = data.cardCollection?.[card.id] || false);
+            try {
+                const saved = gameStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    Object.assign(GAME_STATE.options, data.options || {});
+                    Object.assign(GAME_STATS, data.stats || {});
+                    ACHIEVEMENTS.forEach(ach => ach.earned = data.achievements?.[ach.id] || false);
+                    CARD_COLLECTION.forEach(card => card.unlocked = data.cardCollection?.[card.id] || false);
+                }
+            } catch (e) {
+                console.warn('Failed to load game data:', e);
             }
         }
         function saveGameData() {
-            const data = {
-                options: GAME_STATE.options,
-                stats: GAME_STATS,
-                achievements: ACHIEVEMENTS.reduce((acc, ach) => ({ ...acc, [ach.id]: ach.earned }), {}),
-                cardCollection: CARD_COLLECTION.reduce((acc, card) => ({ ...acc, [card.id]: card.unlocked }), {})
-            };
-            gameStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            try {
+                const data = {
+                    options: GAME_STATE.options,
+                    stats: GAME_STATS,
+                    achievements: ACHIEVEMENTS.reduce((acc, ach) => ({ ...acc, [ach.id]: ach.earned }), {}),
+                    cardCollection: CARD_COLLECTION.reduce((acc, card) => ({ ...acc, [card.id]: card.unlocked }), {})
+                };
+                gameStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Failed to save game data:', e);
+            }
         }
         function shuffle(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -1709,7 +1746,6 @@
                     gl.compileShader(vs);
                     if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
                         const infoLog = gl.getShaderInfoLog(vs);
-                        console.error('Vertex shader compilation error:', infoLog);
                         gl.deleteShader(vs);
                         throw new Error(`Vertex shader compilation failed: ${infoLog}`);
                     }
@@ -1717,7 +1753,6 @@
                     gl.compileShader(fs);
                     if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
                         const infoLog = gl.getShaderInfoLog(fs);
-                        console.error('Fragment shader compilation error:', infoLog);
                         gl.deleteShader(fs);
                         throw new Error(`Fragment shader compilation failed: ${infoLog}`);
                     }
@@ -1727,7 +1762,6 @@
                     gl.linkProgram(program);
                     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
                         const infoLog = gl.getProgramInfoLog(program);
-                        console.error('Program linking error:', infoLog);
                         gl.deleteProgram(program);
                         throw new Error(`Program linking failed: ${infoLog}`);
                     }
@@ -1769,7 +1803,7 @@
                     debouncedResize();
                     isWebGLSupported = true;
                 } catch (error) {
-                    console.error('WebGL init failed:', error);
+                    console.warn('WebGL initialization failed:', error);
                     if (renderLoopId) cancelAnimationFrame(renderLoopId);
                     canvas.style.display = 'none';
                     dynamicBg.style.display = 'none';
@@ -1832,32 +1866,31 @@
         // Game Logic Functions
         async function updateBGM(theme) {
             const url = CONFIG.bgmUrls[theme] || CONFIG.bgmUrls.retro;
-            if (ELEMENTS.bgMusic.src.indexOf(url.split('/').pop()) === -1) {
-                currentBGMUrl = url;
-                ELEMENTS.bgMusic.src = url;
-                if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted) {
-                    try {
+            try {
+                if (ELEMENTS.bgMusic.src.indexOf(url.split('/').pop()) === -1) {
+                    currentBGMUrl = url;
+                    ELEMENTS.bgMusic.src = url;
+                    if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted) {
                         await new Promise((resolve, reject) => {
                             const onLoaded = () => {
                                 ELEMENTS.bgMusic.play().then(resolve).catch(reject);
                             };
-                            const onError = (e) => reject(e);
+                            const onError = (e) => {
+                                console.warn('BGM load error:', e);
+                                reject(e);
+                            };
                             ELEMENTS.bgMusic.addEventListener('canplaythrough', onLoaded, {once: true});
                             ELEMENTS.bgMusic.addEventListener('error', onError, {once: true});
                             ELEMENTS.bgMusic.load();
                         });
-                    } catch (e) {
-                        console.warn('BGM load/play failed for theme', theme, e);
+                    } else {
+                        ELEMENTS.bgMusic.load();
                     }
-                } else {
-                    ELEMENTS.bgMusic.load();
-                }
-            } else if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted && ELEMENTS.bgMusic.paused) {
-                try {
+                } else if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted && ELEMENTS.bgMusic.paused) {
                     await ELEMENTS.bgMusic.play();
-                } catch (e) {
-                    console.warn('BGM resume failed', e);
                 }
+            } catch (e) {
+                console.warn('Failed to update BGM for theme', theme, e);
             }
         }
         async function updateThemeColors(theme) {
@@ -1867,36 +1900,25 @@
         }
         function updateSyncedBadge() {
             if (isCrazyGames) {
-                ELEMENTS.synced-badge.classList.add('active');
+                ELEMENTS.syncedBadge.classList.add('active');
             }
         }
         async function initGame() {
+            // **FIX**: Inform SDK that loading has started
+            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
+
             loadGameData();
             GAME_STATE.currentDifficulty = GAME_STATE.options.difficulty || 'easy';
             GAME_STATE.currentTheme = GAME_STATE.options.theme || 'retro';
-            NEW_AUDIO_MANAGER.musicEnabled = GAME_STATE.options.music ?? true;
+            NEW_AUDIO_MANAGER.musicEnabled = GAME_STATE.options.music ?? false;
             NEW_AUDIO_MANAGER.soundEnabled = GAME_STATE.options.sound ?? true;
             updateAllOptionButtons();
             await updateThemeColors(GAME_STATE.currentTheme);
-            // Defer only CrazyGames SDK init
-            if ('requestIdleCallback' in window) {
-                requestIdleCallback(async () => {
-                    await initCrazyGamesSDK();
-                    if (isCrazyGames) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
-                        loadGameData(); // Reload from cloud data if available
-                    }
-                });
-            } else {
-                setTimeout(async () => {
-                    await initCrazyGamesSDK();
-                    if (isCrazyGames) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
-                        loadGameData();
-                    }
-                }, 0);
-            }
-            // Initialize dynamic background immediately for faster visibility
+
+            await initCrazyGamesSDK(); // Await SDK initialization
+            if(isCrazyGames) loadGameData(); // Reload from cloud data if available
+
+            // Initialize dynamic background
             document.body.classList.add('fallback-bg');
             if (GAME_STATE.options['dynamic-bg']) {
                 window.initWebGL();
@@ -1905,18 +1927,28 @@
                     createBackgroundParticles();
                 }
             }
-            // Hide loading indicator
-            setTimeout(async () => {
-                ELEMENTS.loadingIndicator.style.opacity = '0';
-                setTimeout(async () => {
-                    ELEMENTS.loadingIndicator.style.display = 'none';
-                    if (isCrazyGames) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStop());
-                    }
-                }, 300);
-                document.body.classList.add('loaded');
-            }, 500);
-            // Removed early initContext() to avoid premature AudioContext creation
+            
+            // Hide loading indicator after fade
+            ELEMENTS.loadingIndicator.style.opacity = '0';
+            await new Promise(resolve => setTimeout(resolve, 300));
+            ELEMENTS.loadingIndicator.style.display = 'none';
+
+            // **FIX**: Inform SDK that loading is complete
+            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStop());
+            
+            document.body.classList.add('loaded');
+            if (GAME_STATE.options.music) {
+                await NEW_AUDIO_MANAGER.playBGM();
+            } else {
+                ELEMENTS.musicModal.style.display = 'flex';
+            }
+            ELEMENTS.enableMusicBtn.addEventListener('click', async () => {
+                GAME_STATE.options.music = true;
+                NEW_AUDIO_MANAGER.musicEnabled = true;
+                await NEW_AUDIO_MANAGER.playBGM();
+                ELEMENTS.musicModal.style.display = 'none';
+                saveGameData();
+            });
             setupNavigation();
             initGameScreen();
             initOptionsScreen();
@@ -1952,23 +1984,25 @@
                     await NEW_AUDIO_MANAGER.playButton();
                     const target = button.dataset.target;
                     const isLeavingGame = document.getElementById('game-screen').classList.contains('active') && GAME_STATE.gameStarted;
-                    if (isLeavingGame && isCrazyGames) {
+                    
+                    // **FIX**: Inform SDK that gameplay has stopped when leaving the game screen
+                    if (isLeavingGame) {
                         await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
                     }
+                    
                     await showSection(target);
-                    const isEnteringGame = target === 'game-screen' && GAME_STATE.gameStarted;
-                    if (isEnteringGame && isCrazyGames) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-                    }
                 });
             });
+
+            // **FIX**: Add ad call on continue button
             ELEMENTS.continueBtn.addEventListener('click', async e => {
                 e.preventDefault();
                 await NEW_AUDIO_MANAGER.playButton();
                 ELEMENTS.winAnimation.classList.remove('active');
-                if (GAME_STATE.gameStarted && isCrazyGames) {
-                    await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-                }
+                
+                // Show a mid-game ad after a game is won
+                await callCrazyGamesEvent(() => window.CrazyGames.SDK.ad.requestAd('midgame'));
+
                 if (NEW_AUDIO_MANAGER.musicEnabled) await NEW_AUDIO_MANAGER.playBGM();
             });
         }
@@ -1977,6 +2011,7 @@
             const target = document.getElementById(sectionId);
             if (target) {
                 target.classList.add('active');
+                currentSection = sectionId;
                 if (sectionId === 'game-screen') {
                     resetGame();
                 }
@@ -1998,7 +2033,7 @@
                     await NEW_AUDIO_MANAGER.playButton();
                     if (GAME_STATE.gameStarted) {
                         if (GAME_STATE.gamePaused) {
-                            togglePause();
+                            await togglePause();
                         } else {
                             resetGame();
                         }
@@ -2009,14 +2044,14 @@
                 resetBtn: async e => {
                     e.preventDefault();
                     await NEW_AUDIO_MANAGER.playButton();
-                    if (GAME_STATE.gameStarted && isCrazyGames) {
+                    if (GAME_STATE.gameStarted) {
                         await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
                     }
                     resetGame();
                 },
                 pauseBtn: async e => {
                     e.preventDefault();
-                    togglePause();
+                    await togglePause();
                 },
                 multiplayerBtn: async e => {
                     e.preventDefault();
@@ -2070,7 +2105,7 @@
                             updatedValue = NEW_AUDIO_MANAGER.musicEnabled ? 'on' : 'off';
                             break;
                         case 'sound':
-                            NEW_AUDIO_MANAGER.toggleSound();
+                            await NEW_AUDIO_MANAGER.toggleSound();
                             GAME_STATE.options.sound = NEW_AUDIO_MANAGER.soundEnabled;
                             updatedValue = NEW_AUDIO_MANAGER.soundEnabled ? 'on' : 'off';
                             break;
@@ -2215,7 +2250,8 @@
             ELEMENTS.comboIndicator.classList.add('active');
         }
         async function useHint() {
-            if (ENHANCED_STATE.powerUps.hint-- <= 0) return;
+            if (ENHANCED_STATE.powerUps.hint <= 0) return;
+            ENHANCED_STATE.powerUps.hint--;
             GAME_STATS.powerupsUsed++;
             await NEW_AUDIO_MANAGER.playPowerUp();
             updatePowerUpButtons();
@@ -2242,7 +2278,8 @@
             });
         }
         async function useShuffle() {
-            if (ENHANCED_STATE.powerUps.shuffle-- <= 0 || !GAME_STATE.gameStarted || GAME_STATE.flippedCards.length >= 2) return;
+            if (ENHANCED_STATE.powerUps.shuffle <= 0 || !GAME_STATE.gameStarted || GAME_STATE.flippedCards.length >= 2) return;
+            ENHANCED_STATE.powerUps.shuffle--;
             GAME_STATS.powerupsUsed++;
             await NEW_AUDIO_MANAGER.playPowerUp();
             updatePowerUpButtons();
@@ -2269,19 +2306,21 @@
             const el = document.createElement('div');
             el.className = 'card';
             el.dataset.cardId = card.id;
-            el.tabIndex = 0;
-            el.role = 'button';
-            el.ariaLabel = 'Flip card';
+            el.setAttribute('tabindex', '0');
+            el.setAttribute('role', 'button');
+            el.setAttribute('aria-label', 'Flip card');
             el.innerHTML = `<div class="card-back"></div><div class="card-front">${card.symbol}</div>`;
             ['click', 'keydown'].forEach(event => el.addEventListener(event, async e => {
-                if (event === 'keydown' && !['Enter', ' '].includes(e.key)) return;
+                // support Enter and Space (different browsers report space as ' ' or 'Spacebar'/'Space')
+                if (event === 'keydown' && !['Enter', ' ', 'Spacebar', 'Space'].includes(e.key)) return;
                 e.preventDefault();
-                flipCard(el);
+                await flipCard(el);
             }));
             return el;
         }
         async function useFreeze() {
-            if (ENHANCED_STATE.powerUps.freeze-- <= 0 || !GAME_STATE.gameStarted) return;
+            if (ENHANCED_STATE.powerUps.freeze <= 0 || !GAME_STATE.gameStarted) return;
+            ENHANCED_STATE.powerUps.freeze--;
             ENHANCED_STATE.freezeTimeActive = true;
             ENHANCED_STATE.freezeTimeRemaining = 10;
             GAME_STATS.powerupsUsed++;
@@ -2374,9 +2413,6 @@
                 createParticles(el2, particleCount);
                 if (GAME_STATE.isMultiplayer) updateMultiplayerDisplay();
                 if (GAME_STATE.matchedPairs === GAME_STATE.totalPairs) {
-                    if (isCrazyGames) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
-                    }
                     await endGame();
                 }
             } else {
@@ -2414,13 +2450,17 @@
                 }
                 document.body.appendChild(fragment);
             };
-            (GAME_STATE.options['low-performance'] ? (window.requestIdleCallback || requestAnimationFrame) : fn).call(null, fn);
+            if (GAME_STATE.options['low-performance']) {
+                (window.requestIdleCallback || requestAnimationFrame)(fn);
+            } else {
+                fn();
+            }
             setTimeout(() => particles.forEach(p => p.remove()), 1000);
         }
         async function startGame() {
-            if (isCrazyGames) {
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-            }
+            // **FIX**: Inform SDK that gameplay has started
+            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
+            
             GAME_STATE.gameStarted = true;
             GAME_STATE.totalPairs = (CONFIG.difficultySettings[GAME_STATE.currentDifficulty].rows * CONFIG.difficultySettings[GAME_STATE.currentDifficulty].cols) / 2;
             ELEMENTS.matchesDisplay.textContent = `0/${GAME_STATE.totalPairs}`;
@@ -2458,9 +2498,11 @@
         async function endGame() {
             clearIntervals();
             GAME_STATE.gameStarted = false;
-            if (isCrazyGames) {
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.happytime());
-            }
+
+            // **FIX**: Inform SDK about gameplay stop and a happy moment
+            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
+            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.happytime());
+            
             GAME_STATS.gamesWon++;
             GAME_STATS.totalMoves += GAME_STATE.moves;
             GAME_STATS.totalTime += GAME_STATE.timer;
@@ -2538,15 +2580,18 @@
             debounceSave();
         }
         async function togglePause() {
-            if (GAME_STATE.gameStarted && !GAME_STATE.gamePaused) {
-                GAME_STATE.gamePaused = true;
+            if (!GAME_STATE.gameStarted) return;
+            
+            GAME_STATE.gamePaused = !GAME_STATE.gamePaused;
+
+            if (GAME_STATE.gamePaused) {
                 clearIntervals();
-                if (isCrazyGames) {
-                    await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
-                }
-                ELEMENTS.pauseBtn.textContent = 'RESUME GAME';
-            } else if (GAME_STATE.gamePaused) {
-                GAME_STATE.gamePaused = false;
+                // **FIX**: Inform SDK that gameplay is paused
+                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayPause());
+                ELEMENTS.pauseBtn.textContent = 'RESUME';
+            } else {
+                // **FIX**: Inform SDK that gameplay has resumed
+                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayResume());
                 GAME_STATE.timerInterval = setInterval(() => {
                     if (!ENHANCED_STATE.freezeTimeActive && GAME_STATE.gameStarted && !GAME_STATE.gamePaused) {
                         GAME_STATE.timer++;
@@ -2562,10 +2607,7 @@
                         } else ELEMENTS.freezeTime.textContent = ENHANCED_STATE.freezeTimeRemaining;
                     }, 1000);
                 }
-                if (isCrazyGames) {
-                    await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-                }
-                ELEMENTS.pauseBtn.textContent = 'PAUSE GAME';
+                ELEMENTS.pauseBtn.textContent = 'PAUSE';
             }
         }
         function toggleMultiplayer() {
@@ -2595,7 +2637,8 @@
         }
         function updateGameDisplay() {
             const progress = (GAME_STATE.matchedPairs / GAME_STATE.totalPairs) * 100;
-            if (Math.abs(parseFloat(ELEMENTS.progressFill.style.width) || 0 - progress) > 0.1) ELEMENTS.progressFill.style.width = `${progress}%`;
+            const currentWidth = parseFloat(ELEMENTS.progressFill.style.width) || 0;
+            if (Math.abs(currentWidth - progress) > 0.1) ELEMENTS.progressFill.style.width = `${progress}%`;
             ELEMENTS.comboDisplay.textContent = ENHANCED_STATE.currentCombo;
         }
         window.addEventListener('load', initGame);
