@@ -2511,7 +2511,7 @@
             GAME_STATS.highestCombo = Math.max(GAME_STATS.highestCombo, ENHANCED_STATE.maxCombo);
             GAME_STATS.bestTime = Math.min(GAME_STATS.bestTime, GAME_STATE.timer);
             GAME_STATS.minMoves = Math.min(GAME_STATS.minMoves, GAME_STATE.moves);
-            if (GAME_STATE.moves === GAME_STATE.totalPairs) GAME_STATS.perfectGames++;
+            if (GAME_STATE.mismatches === 0) GAME_STATS.perfectGames++;
             if (GAME_STATE.isMultiplayer) GAME_STATS.multiplayerWins++;
             await NEW_AUDIO_MANAGER.playWin();
             showWinAnimation();
