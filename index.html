@@ -2,2646 +2,1745 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Retro Card Match</title>
-    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metro Mogul: Real Estate Tycoon v1.2</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
         :root {
-            --primary: #ff00ff;
-            --secondary: #00ffff;
-            --accent: #ffcc00;
-            --background: #1a1f2b;
-            --card-bg: #0d0f17;
-            --text: #e0e0e0;
-            --success: #00ff00;
-            --danger: #ff4444;
-            --warning: #ffaa00;
-            --player1: #ff4444;
-            --player2: #4444ff;
+            --bg-color: #2c2c2e;
+            --panel-bg: #e0e0e0;
+            --highlight: #4a90e2;
+            --text-color: #1a1a1a;
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
         }
-        .fallback-bg {
-            background: linear-gradient(135deg, #0a0c14 0%, #1a1f2b 50%, #0a0c14 100%);
-            background-size: 400% 400%;
-            animation: bgGradientShift 20s ease-in-out infinite;
-        }
-        @keyframes bgGradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        [data-theme="fantasy"] {
-            --primary: #8B0000;
-            --secondary: #FFD700;
-            --accent: #228B22;
-        }
-        [data-theme="space"] {
-            --primary: #00BFFF;
-            --secondary: #FF4500;
-            --accent: #FFD700;
-        }
-        [data-theme="nature"] {
-            --primary: #228B22;
-            --secondary: #32CD32;
-            --accent: #FF69B4;
-        }
-        [data-theme="food"] {
-            --primary: #FF6347;
-            --secondary: #FFD700;
-            --accent: #FF1493;
-        }
-        .high-contrast-mode {
-            --primary: #ffffff;
-            --secondary: #000000;
-            --accent: #ffff00;
-            --background: #000000;
-            --card-bg: #333333;
-            --text: #ffffff;
-            filter: contrast(150%);
-        }
-        .colorblind-mode {
-            --primary: #009292;
-            --secondary: #ff6b6b;
-            --accent: #4ecdc4;
-            --success: #45b7d1;
-            --danger: #96ceb4;
-            --warning: #feca57;
-        }
-        * {
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'VT323', monospace;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Press Start 2P', cursive, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background: #0a0c14;
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-            overflow-y: auto;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            touch-action: manipulation;
-            user-select: none; /* Added for mobile anti-magnification */
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        body.loaded {
-            opacity: 1;
-        }
-        .custom-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1001;
-        }
-        .modal-content {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            max-width: 300px;
-            color: var(--text);
-        }
-        .modal-content h3 {
-            color: var(--accent);
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-        }
-        .modal-content p {
-            color: var(--secondary);
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-        .modal-content button {
-            background: linear-gradient(135deg, #ff6600, #cc3300);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border-radius: 8px;
-            border: 2px solid var(--accent);
-            margin-top: 10px;
-            min-height: 44px;
-        }
-        .dynamic-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-        #webgl-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .bg-particle {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,0,255,0.3) 0%, rgba(255,0,255,0) 70%);
-            animation: float 15s infinite linear;
-            opacity: 0.4;
-        }
-        .bg-grid {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 20s linear infinite;
-            opacity: 0.3;
-        }
-        .bg-glow {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.4;
-            animation: pulseGlow 8s ease-in-out infinite;
-        }
-        .glow-1 {
-            background: var(--primary);
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-        .glow-2 {
-            background: var(--secondary);
-            bottom: 10%;
-            right: 10%;
-            animation-delay: 2s;
-        }
-        .glow-3 {
-            background: var(--accent);
-            top: 50%;
-            right: 20%;
-            animation-delay: 4s;
-        }
-        @keyframes float {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 0.4;
-            }
-            50% {
-                transform: translateY(-20px) rotate(180deg);
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(0) rotate(360deg);
-                opacity: 0.4;
-            }
-        }
-        @keyframes gridMove {
-            0% {
-                transform: translate(0, 0);
-            }
-            100% {
-                transform: translate(50px, 50px);
-            }
-        }
-        @keyframes pulseGlow {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 0.4;
-            }
-            50% {
-                transform: scale(1.5);
-                opacity: 0.6;
-            }
-        }
-        .section {
-            display: none;
-            min-height: 100vh;
-            padding: 15px;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* UI Layout */
+        #game-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            background: #111;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* Main Menu Overlay */
+        #main-menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #main-menu {
+            background: var(--panel-bg);
+            border: 4px solid #444;
+            box-shadow: 10px 10px 0px #888;
+            padding: 30px;
+            text-align: center;
+            width: 400px;
+        }
+
+        #main-menu h1 {
+            color: #4a69bd;
+            font-size: 3rem;
+            margin-bottom: 5px;
+            border-bottom: 2px solid #888;
+            padding-bottom: 10px;
+        }
+
+        #main-menu p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        #main-menu button {
+            margin: 10px 0;
+            padding: 15px 20px;
+            font-size: 1.3rem;
+        }
+
+        /* Sidebar (Stats & Controls) */
+        #sidebar {
+            width: 320px;
+            background: #d4d4d4;
+            border-right: 4px solid #888;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
             position: relative;
             z-index: 10;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            transform: translateY(20px);
-            opacity: 0;
-            background: rgba(10, 12, 20, 0.2);
         }
-        .section.active {
-            display: flex;
-            transform: translateY(0);
-            opacity: 1;
-        }
-        #home-screen {
-            text-align: center;
-            justify-content: center;
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .main-title {
-            color: var(--accent);
-            text-shadow: 3px 3px 0 var(--primary), 6px 6px 0 #000;
-            font-size: 3.5rem;
-            margin-bottom: 25px;
-            letter-spacing: 3px;
-            animation: titleGlow 3s infinite alternate;
-            transform: translateZ(0);
-        }
-        @keyframes titleGlow {
-            0% { text-shadow: 3px 3px 0 var(--primary), 6px 6px 0 #000; }
-            100% { text-shadow: 3px 3px 0 var(--secondary), 6px 6px 0 #000, 0 0 15px var(--secondary); }
-        }
-        .main-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 30px;
-            max-width: 500px;
-            width: 100%;
-        }
-        .menu-btn {
-            background: linear-gradient(135deg, #ff6600, #cc3300);
-            color: white;
-            border: none;
-            padding: 18px 25px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            border-radius: 12px;
-            border: 4px solid var(--accent);
-            box-shadow: 0 8px 0 #992200;
-            transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
-            transform: translateZ(0);
-            min-height: 44px;
-        }
-        .menu-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-        .menu-btn:hover::before {
-            left: 100%;
-        }
-        .menu-btn:hover {
-            background: linear-gradient(135deg, #ff8800, #dd5500);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 0 #992200;
-        }
-        .menu-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 8px 0 #992200;
-        }
-        #game-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 15px;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 3px solid var(--primary);
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
-        }
-        .game-title {
-            color: var(--accent);
-            font-size: 1.6rem;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .back-btn {
-            background: linear-gradient(135deg, #3366ff, #0033cc);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            border-radius: 8px;
-            border: 3px solid var(--accent);
-            box-shadow: 0 5px 0 #001a66;
-            transition: all 0.2s;
-            min-height: 44px;
-        }
-        .back-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 7px 0 #001a66;
-        }
-        .back-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 5px 0 #001a66;
-        }
-        .back-btn--spaced {
-            margin-top: 30px;
-        }
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 10px;
+
+        .panel {
+            background: #fff;
+            border: 2px solid #444;
+            box-shadow: 4px 4px 0px #888;
             padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 3px solid var(--secondary);
-            border-radius: 10px;
+            margin-bottom: 15px;
         }
-        .info-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 8px;
-        }
-        .info-label {
-            font-size: 0.8rem;
-            color: var(--secondary);
-            margin-bottom: 4px;
-            text-shadow: 0 0 5px var(--secondary);
-        }
-        .info-value {
+
+        .panel-header {
+            background: #4a69bd;
+            color: white;
+            padding: 5px;
+            margin: -10px -10px 10px -10px;
+            text-align: center;
             font-size: 1.2rem;
-            color: var(--accent);
-            text-shadow: 0 0 8px var(--accent);
+            border-bottom: 2px solid #444;
         }
-        .enhanced-ui {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 900px;
-            margin-bottom: 10px;
+
+        /* Main View (Canvas) */
+        #viewport {
+            flex-grow: 1;
+            position: relative;
+            background-color: #5d9e57;
+            overflow: hidden;
+            cursor: crosshair;
         }
-        .combo-display {
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* HUD Overlay on Canvas */
+        #hud-top {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 2px solid #fff;
+            font-size: 1.5rem;
+            pointer-events: none;
             display: flex;
             gap: 20px;
-            margin-bottom: 10px;
-            padding: 8px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 2px solid var(--accent);
         }
-        .combo-count, .multiplier {
-            font-size: 0.8rem;
-            color: var(--accent);
-        }
-        .power-ups {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .power-btn {
-            background: linear-gradient(135deg, #3366ff, #0033cc);
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            border-radius: 6px;
-            border: 2px solid var(--accent);
-            transition: all 0.2s;
-            min-height: 44px;
-        }
-        .power-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #5588ff, #0044dd);
-            transform: translateY(-2px);
-        }
-        .power-btn:active:not(:disabled) {
-            transform: translateY(0);
-        }
-        .power-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        #freeze-display {
-            font-size: 0.8rem;
-            color: var(--success);
-            margin: 5px 0;
-            display: none;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 5px;
-            margin: 5px 0;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transition: width 0.3s ease;
-            border-radius: 5px;
-            width: 0%;
-            animation: progressFillAnim 0.5s ease-in-out;
-        }
-        @keyframes progressFillAnim {
-            0% { transform: scaleX(0); transform-origin: left; }
-            100% { transform: scaleX(1); }
-        }
-        .game-board {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 10px;
-            perspective: 1200px;
-            max-width: 900px;
-            width: 100%;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-            transform: translateZ(0);
-            overflow: hidden;
-        }
-        .game-board.visible {
-            opacity: 1;
-        }
-        .game-board.easy {
-            grid-template-columns: repeat(4, 1fr);
-        }
-        .game-board.normal {
-            grid-template-columns: repeat(4, 1fr);
-        }
-        .game-board.hard {
-            grid-template-columns: repeat(6, 1fr);
-        }
-        .card {
-            height: 100px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer;
-            border-radius: 10px;
-            transform: translateZ(0);
-            min-height: 80px;
-            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px);
-        }
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-        .card.matched {
-            animation: matchedPulse 1s ease-in-out;
-            pointer-events: none;
-        }
-        .card.mismatch {
-            animation: shake 0.5s ease-in-out;
-        }
-        @keyframes matchedPulse {
-            0% { transform: rotateY(180deg) scale(1); }
-            50% { transform: rotateY(180deg) scale(1.1); filter: brightness(1.5); }
-            100% { transform: rotateY(180deg) scale(1); filter: brightness(1); }
-        }
-        @keyframes shake {
-            0%, 100% { transform: rotateY(180deg) translateX(0); }
-            20%, 60% { transform: rotateY(180deg) translateX(-5px); }
-            40%, 80% { transform: rotateY(180deg) translateX(5px); }
-        }
-        .card-front, .card-back {
+
+        #time-controls {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 10px;
+            top: 10px;
+            right: 10px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transform: translateZ(0);
+            gap: 5px;
         }
-        .card-front {
-            background: linear-gradient(135deg, var(--primary), #cc00cc);
-            border-color: rgba(255, 255, 255, 0.7);
-            transform: rotateY(180deg);
-            font-size: 1.8rem;
-            color: var(--accent);
-            text-shadow: 2px 2px 0 #000;
-        }
-        .card-back {
-            background: linear-gradient(135deg, var(--secondary), #0099cc);
-            border-color: rgba(255, 255, 255, 0.5);
-            transition: all 0.3s ease;
-        }
-        .card-back:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-        }
-        .card-back::before {
-            content: "?";
-            font-size: 1.8rem;
-            color: var(--accent);
-            text-shadow: 2px 2px 0 #000;
-        }
-        .game-controls {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            max-width: 900px;
-            width: 100%;
-        }
-        .control-btn {
-            background: linear-gradient(135deg, #ff6600, #cc3300);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border-radius: 10px;
-            border: 3px solid var(--accent);
-            box-shadow: 0 6px 0 #992200;
-            transition: all 0.2s;
-            min-height: 44px;
-        }
-        .control-btn:hover {
-            background: linear-gradient(135deg, #ff8800, #dd5500);
-            transform: translateY(-3px);
-            box-shadow: 0 9px 0 #992200;
-        }
-        .control-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 6px 0 #992200;
-        }
-        .combo-indicator {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
-            color: var(--accent);
-            text-shadow: 0 0 10px var(--primary);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 50;
-            transform: translateZ(0);
-        }
-        .combo-indicator.active {
-            animation: comboPop 1s ease-out;
-        }
-        @keyframes comboPop {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
-        }
-        .start-message {
+
+        #view-controls {
+            position: absolute;
+            top: 60px;
+            right: 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 4px solid var(--accent);
-            border-radius: 15px;
-            max-width: 500px;
-            margin-bottom: 10px;
+            align-items: flex-end;
+            gap: 5px;
         }
-        .start-message h2 {
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-size: 1.6rem;
-        }
-        .start-message p {
-            color: var(--secondary);
-            margin-bottom: 8px;
-            line-height: 1.4;
-            font-size: 0.85rem;
-        }
-        .multiplayer-indicator {
+
+        #zoom-controls {
             display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            padding: 8px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            border: 2px solid var(--accent);
+            gap: 5px;
+            margin-bottom: 5px;
         }
-        .player-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .player-label {
-            font-size: 0.7rem;
-            color: var(--secondary);
-            margin-bottom: 4px;
-        }
-        .player-score {
-            font-size: 1rem;
-            color: var(--accent);
-        }
-        .player-indicator.active .player-label {
-            color: var(--accent);
-            text-shadow: 0 0 5px var(--accent);
-        }
-        .player-indicator.player1 .player-label::before {
-            content: "👤 ";
-        }
-        .player-indicator.player2 .player-label::before {
-            content: "👤 ";
-        }
-        #options-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .options-container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--primary);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-        }
-        .options-title {
-            color: var(--accent);
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .option-group {
-            margin-bottom: 25px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            border-left: 5px solid var(--accent);
-        }
-        .option-title {
-            color: var(--accent);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            text-shadow: 1px 1px 0 #000;
-        }
-        .option-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .option-btn {
-            background: linear-gradient(135deg, #3366ff, #0033cc);
+
+        .speed-btn, .view-btn {
+            background: rgba(0,0,0,0.8);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            border-radius: 8px;
-            border: 2px solid var(--accent);
-            transition: all 0.2s;
-            min-height: 44px;
-        }
-        .option-btn.active {
-            background: linear-gradient(135deg, var(--primary), #cc00cc);
-            box-shadow: 0 0 10px var(--primary);
-        }
-        .option-btn:hover:not(.active) {
-            background: linear-gradient(135deg, #5588ff, #0044dd);
-            transform: translateY(-2px);
-        }
-        .option-btn:active:not(.active) {
-            transform: translateY(0);
-        }
-        #tutorial-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .tutorial-container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--primary);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .tutorial-title {
-            color: var(--accent);
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .tutorial-step {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 5px solid var(--accent);
-            transition: all 0.3s;
-        }
-        .tutorial-step:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-        }
-        .tutorial-step-number {
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-        .tutorial-step-desc {
-            font-size: 0.8rem;
-            color: var(--secondary);
-            line-height: 1.4;
-        }
-        #achievements-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .achievements-container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--primary);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .achievements-title {
-            color: var(--accent);
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .achievement {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border-left: 5px solid var(--accent);
-            transition: all 0.3s;
-        }
-        .achievement.earned {
-            border-left-color: var(--success);
-            background: rgba(0, 255, 0, 0.15);
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-        }
-        .achievement-name {
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-        .achievement.earned .achievement-name {
-            color: var(--success);
-        }
-        .achievement-desc {
-            font-size: 0.7rem;
-            color: #ccc;
-        }
-        #statistics-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .stats-container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--primary);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-        }
-        .stats-title {
-            color: var(--accent);
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .synced-badge {
-            background: rgba(0, 255, 0, 0.2);
-            border: 1px solid var(--success);
-            color: var(--success);
+            border: 2px solid white;
             padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            display: none;
-            text-align: center;
-        }
-        .synced-badge.active {
-            display: block;
-        }
-        .stat-item {
-            margin-bottom: 18px;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        .stat-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateX(5px);
-        }
-        .stat-name {
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-        .stat-value {
-            font-size: 1.1rem;
-            color: var(--secondary);
-        }
-        .next-goal {
-            background: rgba(0, 255, 0, 0.1);
-            border: 1px solid var(--success);
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        #collection-screen {
-            background: rgba(10, 12, 20, 0.2);
-        }
-        .collection-container {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 4px solid var(--primary);
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
-        }
-        .collection-title {
-            color: var(--accent);
-            font-size: 2.2rem;
-            margin-bottom: 30px;
-            text-align: center;
-            text-shadow: 2px 2px 0 #000;
-        }
-        .card-collection {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .collection-card {
-            width: 80px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--primary), #cc00cc);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border: 2px solid var(--accent);
+            font-family: 'VT323';
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 0 #cc00cc;
+            box-shadow: none;
+            transition: 0.1s;
         }
-        .collection-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 0 #cc00cc;
+        .speed-btn:hover, .view-btn:hover {
+            background: rgba(255,255,255,0.2);
         }
-        .collection-card.locked {
-            background: linear-gradient(135deg, #555, #333);
-            filter: grayscale(1);
-            box-shadow: 0 4px 0 #333;
+        .speed-btn.active, .view-btn.active {
+            background: #fff;
+            color: #000;
         }
-        .collection-card.locked:hover {
-            transform: none;
-            box-shadow: 0 4px 0 #333;
-        }
-        .collection-card-icon {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-        .collection-card-name {
-            font-size: 0.6rem;
-            text-align: center;
-        }
-        .particle {
+
+        #ticker {
             position: absolute;
-            pointer-events: none;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            animation: particleFloat 1s ease-out forwards;
-            transform: translateZ(0);
-        }
-        @keyframes particleFloat {
-            0% {
-                opacity: 1;
-                transform: translate(0, 0) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(var(--tx, 0), var(--ty, -50px)) scale(0);
-            }
-        }
-        .win-animation {
-            position: fixed;
-            top: 0;
+            bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
+            background: #000;
+            color: #0f0;
+            padding: 5px;
+            font-size: 1.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            border-top: 2px solid #fff;
+            z-index: 20;
         }
-        .win-animation.active {
-            opacity: 1;
-            pointer-events: all;
+
+        /* Controls */
+        button {
+            background: #f1f2f6;
+            border: 2px solid #444;
+            box-shadow: 2px 2px 0px #000;
+            color: #333;
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+            padding: 5px 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 5px;
+            transition: transform 0.1s;
         }
-        .win-content {
-            background: rgba(0, 0, 0, 0.5);
-            border: 4px solid var(--accent);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 0 30px var(--accent);
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: none;
         }
-        .win-title {
-            color: var(--accent);
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px var(--accent);
+
+        button.primary { background: #7bed9f; }
+        button.danger { background: #ff6b6b; color: white; }
+        button.warning { background: #f1c40f; }
+        button.service-active { background: #4a90e2; color: white; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            color: #666;
+            opacity: 0.7;
         }
-        .win-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
+
+        .locked-hint {
+            color: #d63031;
+            font-size: 0.8rem;
+            display: block;
+            margin-top: -5px;
+            margin-bottom: 5px;
         }
-        .win-stat {
+
+        .stat-row {
             display: flex;
             justify-content: space-between;
-            font-size: 0.9rem;
+            margin-bottom: 4px;
+            font-size: 1.1rem;
         }
-        .win-stat-label {
-            color: var(--secondary);
+
+        .trend-up { color: #2ecc71; }
+        .trend-down { color: #e74c3c; }
+        .trend-flat { color: #f1c40f; }
+
+        #achievement-popup {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f1c40f;
+            color: #000;
+            padding: 20px;
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            text-align: center;
+            display: none;
+            animation: popIn 0.5s ease-out;
+            z-index: 50;
         }
-        .win-stat-value {
-            color: var(--accent);
+        @keyframes popIn {
+            0% { transform: translateX(-50%) scale(0); }
+            80% { transform: translateX(-50%) scale(1.1); }
+            100% { transform: translateX(-50%) scale(1); }
         }
-        .loading-indicator {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--background);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
-        }
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--accent);
-            animation: spin 1s ease-in-out infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loading-text {
-            color: var(--accent);
-            font-size: 1rem;
-        }
-        @media screen and (orientation: landscape) and (max-height: 500px) {
-            .game-board {
-                gap: 5px;
-            }
-            .card {
-                height: 70px;
-            }
-        }
-        @media (max-width: 768px) {
-            .main-title {
-                font-size: 2.5rem;
-            }
-            .card {
-                height: 90px;
-            }
-            .card-front, .card-back::before {
-                font-size: 1.6rem;
-            }
-            .menu-btn, .control-btn {
-                padding: 12px 18px;
-                font-size: 0.9rem;
-            }
-            .info-value {
-                font-size: 1.2rem;
-            }
-            .power-btn {
-                font-size: 0.6rem;
-                padding: 6px 10px;
-            }
-            .game-info {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            .info-item {
-                flex: 1 1 45%;
-            }
-            .power-ups {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-        }
-        @media (max-width: 480px) {
-            .main-title {
-                font-size: 2rem;
-            }
-            .card {
-                height: 80px;
-            }
-            .card-front, .card-back::before {
-                font-size: 1.4rem;
-            }
-            .menu-btn, .control-btn {
-                padding: 10px 15px;
-                font-size: 0.8rem;
-            }
-            .game-controls {
-                gap: 8px;
-            }
-            .info-item {
-                padding: 0 5px;
-                flex: 1 1 100%;
-            }
-            .info-label {
-                font-size: 0.7rem;
-            }
-            .info-value {
-                font-size: 1rem;
-            }
-            .power-btn {
-                font-size: 0.5rem;
-                padding: 5px 8px;
-                flex: 1 1 100px;
-            }
-            .combo-display {
-                flex-direction: column;
-                gap: 5px;
-            }
-            .option-buttons {
-                justify-content: center;
-            }
-            .option-btn {
-                flex: 1 1 120px;
-                margin: 5px;
-            }
-            .game-board.hard {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-        @keyframes shuffleEffect {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(5deg); }
-            50% { transform: rotate(-5deg); }
-            75% { transform: rotate(3deg); }
-            100% { transform: rotate(0deg); }
-        }
+
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlJldHJvIENhcmQgTWF0Y2ggdjEuNSIsCiAgInNob3J0X25hbWUiOiAiQ2FyZCBNYXRjaCIsCiAgImRlc2NyaXB0aW9uIjogIkEgUmV0cm8gU3R5bGUgQ2FyZCBNYXRjaGluZyBHYW1lIHdpdGggRW5oYW5jZWQgQXVkaW8iLAogICJzdGFydF91cmwiOiAiLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzBhMGMxNCIsCiAgInRoZW1lX2NvbG9yIjogIiNmZjAwZmYiCn0">
 </head>
 <body>
-    <div class="loading-indicator" id="loading-indicator">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">LOADING...</div>
+
+<div id="game-container">
+    <!-- Achievement Popup -->
+    <div id="achievement-popup">
+        <h2 style="margin:0">ACHIEVEMENT UNLOCKED!</h2>
+        <p id="ach-text" style="font-size:1.5rem; margin:10px 0;">Millionaire!</p>
+        <small>Bonus: $5,000</small>
     </div>
-    <div class="custom-modal" id="music-modal" style="display: none;">
-        <div class="modal-content">
-            <h3>Enable Background Music?</h3>
-            <p>Click to enable music for a better experience!</p>
-            <button id="enable-music-btn">Enable Music</button>
+
+    <!-- Main Menu Overlay -->
+    <div id="main-menu-overlay">
+        <div id="main-menu" class="panel">
+            <h1>METRO MOGUL</h1>
+            <p>v1.2 - Zoom & Transit</p>
+            <button class="primary" id="btn-start-new" onclick="Game.startNewGame()">START NEW GAME</button>
+            <button id="btn-load-game" onclick="Game.loadGame()">LOAD GAME</button>
+            <p style="font-size:0.9rem; margin-top: 30px; color:#666;">Use Scroll Wheel to Zoom.<br>WASD or Drag to Pan.</p>
         </div>
     </div>
-    <div class="dynamic-bg" id="dynamic-bg" style="display: none;">
-        <canvas id="webgl-canvas"></canvas>
-        <div class="bg-grid"></div>
-        <div class="bg-glow glow-1"></div>
-        <div class="bg-glow glow-2"></div>
-        <div class="bg-glow glow-3"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <div class="panel">
+            <div class="panel-header">METRO MOGUL</div>
+            <div class="stat-row"><span>Cash:</span> <span id="ui-cash" style="color:green">$0</span></div>
+            <div class="stat-row"><span>Loans:</span> <span id="ui-loans" style="color:red">$0</span></div>
+            <div class="stat-row"><span>Net Worth:</span> <span id="ui-networth">$0</span></div>
+            <div class="stat-row"><span>Income/wk:</span> <span id="ui-income">$0</span></div>
+            <div class="stat-row"><span>Date:</span> <span id="ui-date">Week 1, Year 1</span></div>
+            <div class="stat-row"><span>Market:</span> <span id="ui-market">Normal</span></div>
+            <div class="stat-row"><span>Weather:</span> <span id="ui-weather">Clear</span></div>
+            <div style="text-align:center; margin-top:5px;">
+                <small style="color:#666;" id="ui-save-status">Auto-saving...</small>
+                <button onclick="Game.resetGame()" class="danger" style="font-size:0.9rem; margin-top:5px;">Quit & Reset Game</button>
+            </div>
+        </div>
+
+        <!-- City Services Panel -->
+        <div class="panel">
+            <div class="panel-header">City Services (5% Income Tax)</div>
+            <div id="services-controls">
+                <button id="service-police" onclick="Game.actions.toggleService('police')"
+                        class="service-toggle">👮‍♂️ Police ($500/wk)</button>
+                <button id="service-fire" onclick="Game.actions.toggleService('fire')"
+                        class="service-toggle">🚒 Fire ($300/wk)</button>
+            </div>
+        </div>
+
+        <!-- Bank Panel -->
+        <div class="panel">
+            <div class="panel-header">City Bank (5% Interest)</div>
+            <div style="display:flex; justify-content:space-between; gap:5px;">
+                <button class="primary" onclick="Game.actions.takeLoan()">Borrow $10k</button>
+                <button class="warning" onclick="Game.actions.repayLoan()">Repay $10k</button>
+            </div>
+        </div>
+
+        <!-- Dynamic Action Panel -->
+        <div class="panel" id="action-panel">
+            <div class="panel-header">Selection</div>
+            <div id="selection-content">
+                <p style="text-align:center; color:#666;">Select a tile to interact.</p>
+            </div>
+        </div>
+
+        <!-- Build Menu (Hidden by default) -->
+        <div class="panel" id="build-menu" style="display:none;">
+            <div class="panel-header">Construction</div>
+            <div id="build-buttons"></div>
+            <hr>
+            <button class="danger" onclick="Game.ui.closeBuildMenu()">Cancel</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">Log</div>
+            <div id="game-log" style="height: 100px; overflow-y: auto; font-size: 0.9rem;">
+                <div style="color:#666;">Welcome to Metro Mogul!</div>
+            </div>
+        </div>
     </div>
-    <script id="vertex-shader" type="x-shader/x-vertex">
-        attribute vec2 a_position;
-        varying vec2 v_uv;
-        void main() {
-          v_uv = (a_position + 1.0) * 0.5;
-          gl_Position = vec4(a_position, 0, 1);
+
+    <!-- Viewport -->
+    <div id="viewport">
+        <canvas id="city-canvas"></canvas>
+        <div id="hud-top">
+            <span id="hud-money">$100,000</span>
+        </div>
+        <div id="time-controls">
+            <button class="speed-btn" id="btn-pause" onclick="Game.setSpeed(0)">⏸</button>
+            <button class="speed-btn active" id="btn-normal" onclick="Game.setSpeed(1)">▶</button>
+            <button class="speed-btn" id="btn-fast" onclick="Game.setSpeed(4)">⏩</button>
+        </div>
+        <div id="view-controls">
+            <div id="zoom-controls">
+                <button class="view-btn" onclick="Game.adjustZoom(-0.2)">-</button>
+                <button class="view-btn" onclick="Game.resetZoom()">1:1</button>
+                <button class="view-btn" onclick="Game.adjustZoom(0.2)">+</button>
+            </div>
+            <button class="view-btn" id="btn-view-appeal" onclick="Game.toggleAppealView()">Appeal Map</button>
+        </div>
+        <div id="ticker">News: Real Estate Market is currently stable...</div>
+    </div>
+</div>
+
+<script>
+/**
+ * Metro Mogul - Game Logic v1.2
+ * Updates: Zoom, Day/Night, Weather, Metro, Achievements, Selling
+ */
+
+const CONSTANTS = {
+    TILE_SIZE: 64,
+    GRID_WIDTH: 20,
+    GRID_HEIGHT: 15,
+    BASE_TICK_RATE: 2000,
+    CITY_TAX_RATE: 0.05,
+    SERVICE_COSTS: {
+        police: 500,
+        fire: 300
+    },
+    COLORS: {
+        water: '#5dade2',
+        road: '#7f8c8d',
+        grass_suburb: '#78c470',
+        grass_downtown: '#5d9e57',
+        grass_industrial: '#95a5a6',
+        selected: 'rgba(255, 255, 0, 0.4)',
+        hover: 'rgba(255, 255, 255, 0.2)',
+        rival: '#555',
+        rivalBuilding: '#333'
+    },
+    BUILDING_TYPES: {
+        residential: { id:'residential', name: "House", cost: 5000, baseRent: 150, color: '#e74c3c', maintenance: 20, icon: '🏠', type:'res', unlock: 0, allowed: ['suburbs', 'downtown'] },
+        commercial: { id:'commercial', name: "Shop", cost: 12000, baseRent: 400, color: '#3498db', maintenance: 80, icon: '🏪', type:'com', unlock: 0, allowed: ['suburbs', 'downtown'] },
+        park: { id:'park', name: "Park", cost: 2000, baseRent: 0, color: '#2ecc71', maintenance: 10, icon: '🌳', appealRadius: 3, appealBonus: 15, type:'amenity', unlock: 0, allowed: ['suburbs', 'downtown', 'industrial'] },
+        apartment: { id:'apartment', name: "Apts", cost: 25000, baseRent: 1200, color: '#d35400', maintenance: 300, icon: '🏢', type:'res_high', unlock: 100000, allowed: ['downtown'] },
+        office: { id:'office', name: "Office", cost: 50000, baseRent: 3000, color: '#2c3e50', maintenance: 800, icon: '🏙️', type:'com_high', unlock: 250000, allowed: ['downtown'] },
+        factory: { id:'factory', name: "Factory", cost: 15000, baseRent: 600, color: '#555', maintenance: 50, icon: '🏭', type:'ind', unlock: 50000, appealBonus: -20, allowed: ['industrial'] },
+        metro: { id:'metro', name: "Metro", cost: 30000, baseRent: 0, color: '#8e44ad', maintenance: 400, icon: '🚇', type:'transport', unlock: 150000, allowed: ['suburbs', 'downtown'] }
+    },
+    ACHIEVEMENTS: [
+        { id: 'start', name: "Landlord", threshold: 10000, reward: 1000, desc: "Net Worth > $10k" },
+        { id: 'mid', name: "Tycoon", threshold: 100000, reward: 5000, desc: "Net Worth > $100k" },
+        { id: 'high', name: "Mogul", threshold: 500000, reward: 25000, desc: "Net Worth > $500k" },
+        { id: 'ultra', name: "Empire", threshold: 1000000, reward: 100000, desc: "Net Worth > $1M" }
+    ]
+};
+
+class GameEngine {
+    constructor() {
+        this.canvas = document.getElementById('city-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.width = 0;
+        this.height = 0;
+
+        // Game State
+        this.cash = 0;
+        this.loan = 0;
+        this.netWorth = 0;
+        this.week = 1;
+        this.year = 1;
+        this.marketTrend = 'Normal';
+        this.marketIndex = 100;
+        this.marketMultiplier = 1.0;
+        this.selectedTile = null;
+        this.hoverTile = null;
+        this.speed = 0;
+        this.lastTickTime = 0;
+        this.floatingTexts = [];
+        this.viewMode = 'normal';
+        this.services = { police: false, fire: false };
+        this.grid = [];
+        this.achievementsUnlocked = [];
+
+        // New State Variables
+        this.weather = 'clear'; // 'clear' or 'rain'
+        this.weatherTimer = 0;
+        this.dayCycle = 0; // 0-100 (0-75 day, 75-100 night)
+
+        // Camera & Zoom
+        this.camera = { x: 0, y: 0 };
+        this.zoom = 1.0;
+        this.isDragging = false;
+        this.lastMouse = { x: 0, y: 0 };
+
+        this.resize();
+        this.setupEvents();
+
+        this.ui = new UIManager(this);
+        this.updateLoadButton();
+        this.setSpeed(0);
+        requestAnimationFrame((t) => this.gameLoop(t));
+        this.ui.updateStats();
+    }
+
+    updateLoadButton() {
+        const loadButton = document.getElementById('btn-load-game');
+        if (localStorage.getItem('metroMogulSave')) {
+            loadButton.disabled = false;
+            loadButton.textContent = "LOAD GAME (Saved)";
+        } else {
+            loadButton.disabled = true;
+            loadButton.textContent = "LOAD GAME (No Save)";
         }
-    </script>
-    <script id="fragment-shader" type="x-shader/x-fragment">
-        precision mediump float;
-        uniform float u_time;
-        uniform vec2 u_resolution;
-        uniform vec3 u_color1;
-        uniform vec3 u_color2;
-        uniform vec3 u_color3;
-        varying vec2 v_uv;
-        float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-        }
-        float noise(vec2 st) {
-            vec2 i = floor(st);
-            vec2 f = fract(st);
-            float a = random(i);
-            float b = random(i + vec2(1.0, 0.0));
-            float c = random(i + vec2(0.0, 1.0));
-            float d = random(i + vec2(1.0, 1.0));
-            vec2 u = f * f * (3.0 - 2.0 * f);
-            return mix(a, b, u.x) +
-                   (c - a) * u.y * (1.0 - u.x) +
-                   (d - b) * u.x * u.y;
-        }
-        float fbm(vec2 st) {
-            float accum = 0.0;
-            float amplitude = 0.5;
-            float frequency = 1.0;
-            float lacunarity = 2.0;
-            float gain = 0.5;
-            for (int i = 0; i < 3; i++) {
-                accum += amplitude * noise(st * frequency);
-                frequency *= lacunarity;
-                amplitude *= gain;
+    }
+
+    initGrid() {
+        for (let x = 0; x < CONSTANTS.GRID_WIDTH; x++) {
+            this.grid[x] = [];
+            for (let y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
+                let type = 'grass';
+                let zone = 'suburbs';
+                let basePrice = 2000;
+
+                // 1. Water Front (Bottom Edge)
+                if (y >= CONSTANTS.GRID_HEIGHT - 3) {
+                    type = 'water';
+                    zone = 'waterfront';
+                    basePrice = 0;
+                }
+
+                // 2. Downtown (Center/Top Right)
+                if (x >= CONSTANTS.GRID_WIDTH - 8 && y < CONSTANTS.GRID_HEIGHT - 4) {
+                    zone = 'downtown';
+                    basePrice = 8000 + Math.floor(Math.random() * 2000);
+                }
+
+                // 3. Industrial (Vertical Strip)
+                else if (x >= 4 && x <= 6 && y < CONSTANTS.GRID_HEIGHT - 4) {
+                    zone = 'industrial';
+                    basePrice = 4000 + Math.floor(Math.random() * 1000);
+                }
+
+                // 4. Suburbs (Default, Top Left)
+                else {
+                    if(type !== 'water') {
+                        zone = 'suburbs';
+                        basePrice = 2000 + Math.floor(Math.random() * 1000);
+                    }
+                }
+
+                // 5. Road Network (Simple Cross)
+                if (type !== 'water' && (x === 10 || y === 7)) {
+                    type = 'road';
+                    basePrice *= 1.1;
+                }
+
+                this.grid[x][y] = {
+                    x, y,
+                    type: type,
+                    zone: zone,
+                    owner: null,
+                    building: null,
+                    price: Math.floor(basePrice),
+                    appeal: 50
+                };
             }
-            return accum;
         }
-        float scanlines(vec2 uv) {
-            float density = 12.56 / u_resolution.y;
-            float scan = sin(uv.y * u_resolution.y * density) * 0.5 + 0.5;
-            return 1.0 - (scan * 0.05);
+        // Initialize some rival land
+        this.grid[CONSTANTS.GRID_WIDTH - 2][CONSTANTS.GRID_HEIGHT - 5].owner = 'rival';
+        this.grid[CONSTANTS.GRID_WIDTH - 3][CONSTANTS.GRID_HEIGHT - 5].owner = 'rival';
+    }
+
+    startNewGame() {
+        this.initGrid();
+        this.cash = 50000;
+        this.loan = 0;
+        this.netWorth = 50000;
+        this.week = 1;
+        this.year = 1;
+        this.marketIndex = 100;
+        this.marketMultiplier = 1.0;
+        this.services = { police: false, fire: false };
+        this.achievementsUnlocked = [];
+        this.log("New game started.", "trend-up");
+        this.ui.updateServices();
+        this.ui.updateStats();
+        this.hideMenu();
+    }
+
+    hideMenu() {
+         document.getElementById('main-menu-overlay').style.display = 'none';
+         this.setSpeed(1); // Start the clock
+    }
+
+    saveGame() {
+        const saveData = {
+            cash: this.cash,
+            loan: this.loan,
+            week: this.week,
+            year: this.year,
+            marketTrend: this.marketTrend,
+            marketIndex: this.marketIndex,
+            services: this.services,
+            grid: this.grid,
+            achievementsUnlocked: this.achievementsUnlocked
+        };
+        try {
+            localStorage.setItem('metroMogulSave', JSON.stringify(saveData));
+            document.getElementById('ui-save-status').textContent = "Saved";
+            setTimeout(() => document.getElementById('ui-save-status').textContent = "", 2000);
+            this.updateLoadButton();
+        } catch(e) {
+            console.error("Save failed", e);
         }
-        float vignette(vec2 uv) {
-            vec2 q = uv - 0.5;
-            return 1.0 - (dot(q, q) * 0.5);
+    }
+
+    loadGame() {
+        const saved = localStorage.getItem('metroMogulSave');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                this.cash = data.cash;
+                this.loan = data.loan;
+                this.week = data.week;
+                this.year = data.year;
+                this.marketTrend = data.marketTrend || 'Normal';
+                this.marketIndex = data.marketIndex || 100;
+                this.marketMultiplier = this.marketIndex / 100;
+                this.grid = data.grid;
+                this.services = data.services || { police: false, fire: false };
+                this.achievementsUnlocked = data.achievementsUnlocked || [];
+
+                this.log("Game Loaded.", "trend-flat");
+                this.ui.updateServices();
+                this.ui.updateStats();
+                this.hideMenu();
+                return true;
+            } catch(e) {
+                console.error("Load failed", e);
+                this.log("Load failed. Starting new game.", "trend-down");
+                this.startNewGame();
+                return false;
+            }
         }
-        float crtMask(vec2 uv) {
-            float maskDensity = 200.0 / u_resolution.x;
-            float mask = sin(uv.x * u_resolution.x * maskDensity) * 0.5 + 0.5;
-            return 1.0 + (mask - 0.5) * 0.1;
+        this.log("No save game found.", "trend-down");
+        return false;
+    }
+
+    resetGame() {
+        if(confirm("Are you sure? This will wipe your save and reload the game.")) {
+            localStorage.removeItem('metroMogulSave');
+            location.reload();
         }
-        void main() {
-            vec2 uv = v_uv;
-            uv.x *= u_resolution.x / u_resolution.y;
-            float t = u_time * 0.6;
-            float n1 = fbm(uv * 1.5 + vec2(t * 0.1, t * 0.05));
-            float n2 = fbm(uv * 3.0 + vec2(t * -0.2, t * 0.15));
-            float noiseLayer = (n1 + n2 * 0.5) * 0.5;
-            vec2 distortedUV = uv + vec2(sin(t * 0.5 + uv.y * 5.0) * 0.02, cos(t * 0.3 + uv.x * 5.0) * 0.01);
-            float dependentNoise = fbm(distortedUV + noiseLayer * 1.2);
-            vec3 color = mix(u_color1, u_color2, noiseLayer);
-            color = mix(color, u_color3, dependentNoise * 0.7);
-            color *= scanlines(uv);
-            color *= vignette(uv);
-            color *= crtMask(uv);
-            float pulse = sin(t * 2.0) * 0.1 + 0.9;
-            color *= pulse;
-            gl_FragColor = vec4(color, 1.0);
+    }
+
+    // --- Core Logic ---
+
+    gameLoop(timestamp) {
+        // Visual updates independent of game speed (Day/Night)
+        this.dayCycle = (this.dayCycle + 0.1) % 100;
+
+        // Weather Animation
+        if (this.weather === 'rain') {
+            this.drawRain();
         }
-    </script>
-    <!-- New Audio Elements -->
-    <audio id="bg-music" loop preload="auto">
-        <source src="https://soundimage.org/wp-content/uploads/2017/07/Arcade-Puzzler.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <section id="home-screen" class="section active" role="region">
-        <h1 class="main-title">RETRO CARD MATCH</h1>
-        <p style="color: var(--secondary); margin-bottom: 25px; font-size: 1.1rem;">Match pairs of cards to win!</p>
-        <div class="main-menu">
-            <button class="menu-btn" data-target="tutorial-screen" aria-label="View Tutorial">TUTORIAL</button>
-            <button class="menu-btn" data-target="game-screen" aria-label="Play Game">PLAY GAME</button>
-            <button class="menu-btn" data-target="options-screen" aria-label="Game Options">OPTIONS</button>
-            <button class="menu-btn" data-target="achievements-screen" aria-label="View Achievements">ACHIEVEMENTS</button>
-            <button class="menu-btn" data-target="statistics-screen" aria-label="View Statistics">STATISTICS</button>
-            <button class="menu-btn" data-target="collection-screen" aria-label="View Card Collection">CARD COLLECTION</button>
-        </div>
-    </section>
-    <section id="tutorial-screen" class="section" role="region">
-        <div class="tutorial-container">
-            <h2 class="tutorial-title">HOW TO PLAY</h2>
-            <div id="tutorial-steps">
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">1. Choose Your Setup</div>
-                    <div class="tutorial-step-desc">Go to OPTIONS to select difficulty (Easy, Normal, Hard) and theme (Retro, Fantasy, etc.). Start with Easy for 12 cards!</div>
-                </div>
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">2. Start the Game</div>
-                    <div class="tutorial-step-desc">Click PLAY GAME, then START GAME. Cards will shuffle—watch for the board to appear.</div>
-                </div>
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">3. Match Cards</div>
-                    <div class="tutorial-step-desc">Click two cards to flip them. If they match (same symbol), they stay flipped and you score points! Mismatches shake and flip back.</div>
-                </div>
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">4. Use Power-Ups</div>
-                    <div class="tutorial-step-desc">Hint (💡) highlights a pair, Shuffle (🔄) rearranges the board, Freeze (⏸️) pauses the timer. Limited uses per game.</div>
-                </div>
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">5. Multiplayer Fun</div>
-                    <div class="tutorial-step-desc">Toggle MULTIPLAYER for 2-player turns. Highest score wins!</div>
-                </div>
-                <div class="tutorial-step">
-                    <div class="tutorial-step-number">6. Win & Track Progress</div>
-                    <div class="tutorial-step-desc">Match all pairs to win! Check ACHIEVEMENTS and STATISTICS for unlocks and stats.</div>
-                </div>
-            </div>
-            <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-    </section>
-    <section id="game-screen" class="section" role="region">
-        <div class="game-header">
-            <h2 class="game-title">RETRO CARD MATCH</h2>
-            <button class="back-btn" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-        <div class="game-info">
-            <div class="info-item">
-                <div class="info-label">MOVES</div>
-                <div class="info-value" id="moves">0</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">TIME</div>
-                <div class="info-value" id="timer">0s</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">MATCHES</div>
-                <div class="info-value" id="matches">0/8</div>
-            </div>
-            <div class="info-item">
-                <div class="info-label">SCORE</div>
-                <div class="info-value" id="score">0</div>
-            </div>
-        </div>
-        <div class="multiplayer-indicator" id="multiplayer-indicator" style="display: none;">
-            <div class="player-indicator player1" id="player1-indicator">
-                <div class="player-label">PLAYER 1</div>
-                <div class="player-score" id="player1-score">0</div>
-            </div>
-            <div class="player-indicator player2" id="player2-indicator">
-                <div class="player-label">PLAYER 2</div>
-                <div class="player-score" id="player2-score">0</div>
-            </div>
-        </div>
-        <div class="enhanced-ui">
-            <div class="combo-display">
-                <div class="combo-count">Combo: <span id="combo">0</span>x</div>
-                <div class="multiplier">Multiplier: <span id="multiplier">1</span>x</div>
-            </div>
-            <div class="power-ups">
-                <button class="power-btn" id="hint-btn" title="Hint (3 remaining)" aria-label="Use Hint Power-Up" aria-describedby="hint-desc">
-                    💡 Hint
-                </button>
-                <span id="hint-desc" style="display:none;">Highlights a matching pair</span>
-                <button class="power-btn" id="shuffle-btn" title="Shuffle (2 remaining)" aria-label="Use Shuffle Power-Up" aria-describedby="shuffle-desc">
-                    🔄 Shuffle
-                </button>
-                <span id="shuffle-desc" style="display:none;">Rearranges the board</span>
-                <button class="power-btn" id="freeze-btn" title="Freeze Time (1 remaining)" aria-label="Use Freeze Time Power-Up" aria-describedby="freeze-desc">
-                    ⏸️ Freeze
-                </button>
-                <span id="freeze-desc" style="display:none;">Pauses the timer for 10 seconds</span>
-            </div>
-            <div id="freeze-display">
-                ⏸️ Freeze Active: <span id="freeze-time">10</span>s
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
-        <div class="start-message" id="start-message">
-            <h2>READY TO PLAY?</h2>
-            <p>Click the "START GAME" button to begin matching cards!</p>
-            <p>Match all pairs to win!</p>
-        </div>
-        <div class="game-board" id="game-board" aria-label="Game Board"></div>
-        <div class="game-controls">
-            <button class="control-btn" id="start-btn" aria-label="Start Game">START GAME</button>
-            <button class="control-btn" id="reset-btn" aria-label="Reset Game">RESET GAME</button>
-            <button class="control-btn" id="pause-btn" style="display: none;" aria-label="Pause Game">PAUSE GAME</button>
-            <button class="control-btn" id="multiplayer-btn" aria-label="Toggle Multiplayer">MULTIPLAYER: OFF</button>
-        </div>
-    </section>
-    <section id="options-screen" class="section" role="region">
-        <div class="options-container">
-            <h2 class="options-title">GAME OPTIONS</h2>
-            <div class="option-group">
-                <h3 class="option-title">DIFFICULTY</h3>
-                <div class="option-buttons">
-                    <button class="option-btn active" data-option="difficulty" data-value="easy" aria-label="Easy Difficulty">EASY (3×4)</button>
-                    <button class="option-btn" data-option="difficulty" data-value="normal" aria-label="Normal Difficulty">NORMAL (4×4)</button>
-                    <button class="option-btn" data-option="difficulty" data-value="hard" aria-label="Hard Difficulty">HARD (6×6)</button>
-                </div>
-            </div>
-            <div class="option-group">
-                <h3 class="option-title">THEME</h3>
-                <div class="option-buttons">
-                    <button class="option-btn active" data-option="theme" data-value="retro" aria-label="Retro Arcade Theme">RETRO ARCADE</button>
-                    <button class="option-btn" data-option="theme" data-value="fantasy" aria-label="Fantasy Realm Theme">FANTASY REALM</button>
-                    <button class="option-btn" data-option="theme" data-value="space" aria-label="Space Explorer Theme">SPACE EXPLORER</button>
-                    <button class="option-btn" data-option="theme" data-value="nature" aria-label="Nature Theme">NATURE</button>
-                    <button class="option-btn" data-option="theme" data-value="food" aria-label="Food Delights Theme">FOOD DELIGHTS</button>
-                </div>
-            </div>
-            <div class="option-group">
-                <h3 class="option-title">PERFORMANCE</h3>
-                <div class="option-buttons">
-                    <button class="option-btn active" data-option="dynamic-bg" data-value="on" aria-label="Toggle Dynamic Background">DYNAMIC BG: ON</button>
-                    <button class="option-btn" data-option="low-performance" data-value="off" aria-label="Low Performance Mode">LOW PERF: OFF</button>
-                </div>
-            </div>
-            <div class="option-group">
-                <h3 class="option-title">ACCESSIBILITY</h3>
-                <div class="option-buttons">
-                    <button class="option-btn" data-option="colorblind" data-value="off" aria-label="Toggle Colorblind Mode">COLORBLIND: OFF</button>
-                    <button class="option-btn" data-option="high-contrast" data-value="off" aria-label="Toggle High Contrast Mode">HIGH CONTRAST: OFF</button>
-                </div>
-            </div>
-            <div class="option-group">
-                <h3 class="option-title">AUDIO</h3>
-                <div class="option-buttons">
-                    <button class="option-btn active" data-option="music" data-value="on" aria-label="Toggle Music">MUSIC: ON</button>
-                    <button class="option-btn active" data-option="sound" data-value="on" aria-label="Toggle Sound Effects">SFX: ON</button>
-                </div>
-            </div>
-            <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-    </section>
-    <section id="achievements-screen" class="section" role="region">
-        <div class="achievements-container">
-            <h2 class="achievements-title">ACHIEVEMENTS</h2>
-            <div id="achievements-list" aria-label="Achievements List"></div>
-            <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-    </section>
-    <section id="statistics-screen" class="section" role="region">
-        <div class="stats-container">
-            <h2 class="stats-title">GAME STATISTICS</h2>
-            <div class="synced-badge" id="synced-badge">Synced Progress ☁️</div>
-            <div id="stats-list" aria-label="Statistics List"></div>
-            <div class="next-goal" id="next-goal"></div>
-            <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-    </section>
-    <section id="collection-screen" class="section" role="region">
-        <div class="collection-container">
-            <h2 class="collection-title">CARD COLLECTION</h2>
-            <div class="card-collection" id="card-collection" aria-label="Card Collection"></div>
-            <button class="back-btn back-btn--spaced" data-target="home-screen" aria-label="Back to Main Menu">BACK TO MENU</button>
-        </div>
-    </section>
-    <div class="combo-indicator" id="combo-indicator" aria-live="polite" role="status"></div>
-    <div class="win-animation" id="win-animation">
-        <div class="win-content">
-            <h2 class="win-title" id="win-title">VICTORY!</h2>
-            <div class="win-stats" id="win-stats"></div>
-            <button class="control-btn" id="continue-btn">CONTINUE</button>
-        </div>
-    </div>
-    <script>
-        // CrazyGames SDK Integration
-        let CRAZYGAMES_ENV = 'disabled';
-        let isCrazyGames = false;
-        let gameStorage = localStorage;
-        let currentSection = 'home-screen';
-        async function initCrazyGamesSDK() {
-            if (typeof window.CrazyGames === 'undefined' || !window.CrazyGames.SDK) {
-                console.log("CrazyGames SDK not found.");
+
+        if (this.speed > 0) {
+            let interval = CONSTANTS.BASE_TICK_RATE / this.speed;
+            if (timestamp - this.lastTickTime > interval) {
+                this.tick();
+                this.lastTickTime = timestamp;
+            }
+        }
+
+        this.updateFloatingTexts();
+        this.draw();
+        requestAnimationFrame((t) => this.gameLoop(t));
+    }
+
+    setSpeed(s) {
+        this.speed = s;
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        if(s===0) document.getElementById('btn-pause').classList.add('active');
+        if(s===1) document.getElementById('btn-normal').classList.add('active');
+        if(s===4) document.getElementById('btn-fast').classList.add('active');
+    }
+
+    toggleAppealView() {
+        if (this.viewMode === 'normal') {
+            this.viewMode = 'appeal';
+            document.getElementById('btn-view-appeal').classList.add('active');
+            this.log("Appeal Heatmap ON.");
+        } else {
+            this.viewMode = 'normal';
+            document.getElementById('btn-view-appeal').classList.remove('active');
+            this.log("Appeal Heatmap OFF.");
+        }
+    }
+
+    // Zoom Functions
+    adjustZoom(delta) {
+        this.zoom = Math.max(0.5, Math.min(2.5, this.zoom + delta));
+        this.log(`Zoom: ${Math.round(this.zoom*100)}%`);
+    }
+    resetZoom() { this.zoom = 1.0; }
+
+    tick() {
+        if (this.grid.length === 0) return;
+
+        this.week++;
+        if (this.week > 52) {
+            this.week = 1;
+            this.annualEvents();
+        }
+
+        // Weather Logic
+        if (Math.random() < 0.05) { // 5% chance to change weather
+            this.weather = (this.weather === 'clear') ? 'rain' : 'clear';
+            if(this.weather === 'rain') this.log("It started raining.", "trend-down");
+            else this.log("The skies have cleared.", "trend-up");
+            document.getElementById('ui-weather').textContent = this.weather === 'rain' ? 'Rain 🌧️' : 'Clear ☀️';
+        }
+
+        this.saveGame();
+
+        // 1. Market Volatility
+        let volatility = Math.random() * 0.5 - 0.25;
+        this.marketIndex = Math.max(50, Math.min(150, this.marketIndex + volatility));
+        this.marketMultiplier = this.marketIndex / 100;
+        this.changeMarketState();
+
+        // 2. Events & Rival
+        this.handleRandomEvents();
+        const rivalChance = this.services.police ? 0.05 : 0.15;
+        if (Math.random() < rivalChance) this.rivalAction();
+
+        // 3. Finances
+        let weeklyGrossIncome = 0;
+        let weeklyExpenses = 0;
+        let weeklyTaxableRent = 0;
+
+        // Interest
+        let interest = Math.ceil((this.loan * 0.05) / 52);
+        weeklyExpenses += interest;
+
+        // Service Costs
+        if (this.services.police) weeklyExpenses += CONSTANTS.SERVICE_COSTS.police;
+        if (this.services.fire) weeklyExpenses += CONSTANTS.SERVICE_COSTS.fire;
+
+        const decayReduction = this.services.fire ? 0.5 : 1.0;
+        const weatherMaintPenalty = this.weather === 'rain' ? 1.5 : 1.0; // Rain increases maintenance
+
+        for (let col of this.grid) {
+            for (let tile of col) {
+                this.updateTileAppeal(tile);
+
+                if (tile.owner === 'player' && tile.building) {
+
+                    // Maintenance Logic
+                    let maint = tile.building.maintenance * weatherMaintPenalty;
+                    weeklyExpenses += maint;
+
+                    // Income Logic
+                    if (tile.building.stats.type !== 'amenity' && tile.building.stats.type !== 'transport') {
+                        let conditionMultiplier = tile.building.condition / 100;
+                        let rent = tile.building.baseRent * tile.building.level * (tile.appeal / 50) * conditionMultiplier * this.marketMultiplier;
+
+                        // Night time reduces shop income
+                        if (this.dayCycle > 75 && tile.building.stats.type.includes('com')) {
+                             rent *= 0.2; // Shops closed at night
+                        }
+
+                        let occupancy = 1.0;
+                        if (tile.building.stats.type.includes('_high') && tile.appeal < 40) occupancy = 0.6;
+                        if (tile.building.stats.type === 'ind') occupancy = 1.0;
+                        if (tile.building.condition < 40) occupancy *= 0.5;
+
+                        let actualRent = rent * occupancy;
+                        weeklyGrossIncome += actualRent;
+                        weeklyTaxableRent += actualRent;
+
+                        if (Math.random() < 0.02) {
+                            this.spawnFloatingText(`+$${Math.floor(actualRent)}`, tile.x, tile.y, '#2ecc71');
+                        }
+                    }
+
+                    // Condition Decay
+                    let decayRate = tile.building.stats.type.includes('_high') ? 1.0 : 0.5;
+                    tile.building.condition -= decayRate * decayReduction * weatherMaintPenalty;
+                    if(tile.building.condition < 0) tile.building.condition = 0;
+                }
+
+                // Rival buildings decay
+                if(tile.owner === 'rival' && tile.building) {
+                    let decayRate = tile.building.stats.type.includes('_high') ? 1.0 : 0.5;
+                    tile.building.condition -= decayRate;
+                    if(tile.building.condition < 0) tile.building.condition = 0;
+                }
+            }
+        }
+
+        let incomeTax = Math.floor(weeklyTaxableRent * CONSTANTS.CITY_TAX_RATE);
+        weeklyExpenses += incomeTax;
+
+        this.cash += (weeklyGrossIncome - weeklyExpenses);
+
+        let netProfit = weeklyGrossIncome - weeklyExpenses;
+        this.ui.updateStats(netProfit, incomeTax);
+        this.checkAchievements();
+
+        if (this.selectedTile) this.ui.renderSelection(this.selectedTile);
+
+        if (this.cash < -50000) {
+            alert("BANKRUPT! Your debt is too high. Game will reset.");
+            this.resetGame();
+        }
+    }
+
+    checkAchievements() {
+        CONSTANTS.ACHIEVEMENTS.forEach(ach => {
+            if (!this.achievementsUnlocked.includes(ach.id)) {
+                if (this.netWorth >= ach.threshold) {
+                    this.achievementsUnlocked.push(ach.id);
+                    this.cash += ach.reward;
+                    this.ui.showAchievement(ach);
+                    this.log(`Achievement: ${ach.name}! Bonus: $${ach.reward}`, "trend-up");
+                }
+            }
+        });
+    }
+
+    handleRandomEvents() {
+        // Fire Event (Less likely in rain)
+        let fireChance = this.weather === 'rain' ? 0.005 : 0.02;
+        if (Math.random() < fireChance) {
+            let playerTiles = [];
+            this.grid.forEach(c => c.forEach(t => { if(t.owner === 'player' && t.building) playerTiles.push(t) }));
+
+            if (playerTiles.length > 0) {
+                let victim = playerTiles[Math.floor(Math.random() * playerTiles.length)];
+                if (this.services.fire) {
+                     this.log(`Fire extinguished at ${victim.building.name}! Service did its job.`);
+                } else {
+                     victim.building.condition = 0;
+                     this.log(`🔥 FIRE at ${victim.building.name}! Condition ruined! Build a Fire Station!`, 'trend-down');
+                     this.spawnFloatingText("FIRE!", victim.x, victim.y, '#e74c3c');
+                }
+            }
+        }
+
+        // Crime Event
+        if (Math.random() < 0.03) {
+             if (this.services.police) {
+                 // Prevented
+             } else {
+                 let stolen = Math.floor(this.cash * 0.05);
+                 if (stolen > 500) {
+                     this.cash -= stolen;
+                     this.log(`👮 Crime Wave! Thieves stole $${stolen}. Build a Police Station!`, 'trend-down');
+                 }
+             }
+        }
+    }
+
+    changeMarketState() {
+        const oldTrend = this.marketTrend;
+        let push = 0;
+
+        if (this.marketIndex > 130) {
+            this.marketTrend = 'Boom';
+            push = 5;
+        } else if (this.marketIndex < 70) {
+            this.marketTrend = 'Recession';
+            push = -5;
+        } else {
+            this.marketTrend = 'Normal';
+        }
+
+        if (Math.random() < 0.01) {
+            push += (Math.random() > 0.5 ? 10 : -10);
+        }
+
+        this.marketIndex = Math.max(50, Math.min(150, this.marketIndex + push));
+        this.marketMultiplier = this.marketIndex / 100;
+
+        if (this.marketTrend !== oldTrend) {
+            this.ui.updateTicker();
+        }
+    }
+
+    rivalAction() {
+        let rivalsLand = [];
+        let emptyLand = [];
+
+        for (let x = 0; x < CONSTANTS.GRID_WIDTH; x++) {
+            for (let y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
+                let t = this.grid[x][y];
+                if (t.owner === 'rival' && !t.building) rivalsLand.push(t);
+                if (t.owner === null && t.type !== 'water' && t.type !== 'road') emptyLand.push(t);
+            }
+        }
+
+        // Action 1: Build
+        if (rivalsLand.length > 0 && Math.random() < 0.7) {
+            let t = rivalsLand[Math.floor(Math.random() * rivalsLand.length)];
+            let type = 'residential';
+            if (t.zone === 'downtown') {
+                if (t.appeal > 80) type = 'office';
+                else type = 'apartment';
+            } else if (t.zone === 'industrial') {
+                type = 'factory';
+            }
+
+            let bData = CONSTANTS.BUILDING_TYPES[type];
+            // Rival obeys zoning vaguely (simple AI)
+            if (!bData.allowed.includes(t.zone)) return;
+
+            t.building = {
+                type: type,
+                name: "Rival " + bData.name,
+                level: 1,
+                condition: 100,
+                baseRent: bData.baseRent,
+                maintenance: bData.maintenance,
+                stats: bData,
+                color: CONSTANTS.COLORS.rivalBuilding
+            };
+            this.spawnFloatingText("RIVAL BUILD", t.x, t.y, '#555');
+        }
+        // Action 2: Buy
+        else if (emptyLand.length > 0) {
+            let t = emptyLand[Math.floor(Math.random() * emptyLand.length)];
+            t.owner = 'rival';
+            this.log(`Rival bought land at (${t.x},${t.y})`);
+            this.spawnFloatingText("SOLD!", t.x, t.y, '#e74c3c');
+        }
+    }
+
+    spawnFloatingText(text, tx, ty, color) {
+        this.floatingTexts.push({
+            text,
+            x: tx * CONSTANTS.TILE_SIZE + CONSTANTS.TILE_SIZE/2,
+            y: ty * CONSTANTS.TILE_SIZE,
+            life: 60, // frames
+            color: color
+        });
+    }
+
+    updateFloatingTexts() {
+        for(let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            let ft = this.floatingTexts[i];
+            ft.y -= 0.5; // float up
+            ft.life--;
+            if(ft.life <= 0) this.floatingTexts.splice(i, 1);
+        }
+    }
+
+    updateTileAppeal(tile) {
+        let baseAppeal = 50;
+
+        // Global Police Bonus
+        if (this.services.police) {
+            baseAppeal += 5;
+        }
+
+        const range = 4;
+        for (let dx = -range; dx <= range; dx++) {
+            for (let dy = -range; dy <= range; dy++) {
+                let nx = tile.x + dx;
+                let ny = tile.y + dy;
+                if (this.isValidTile(nx, ny)) {
+                    let neighbor = this.grid[nx][ny];
+                    let dist = Math.max(Math.abs(dx), Math.abs(dy));
+
+                    // General Building/Amenity Modifiers
+                    if (neighbor.building) {
+                        // Park bonus
+                        if (neighbor.building.type === 'park') {
+                            let bonus = neighbor.building.stats.appealBonus / (dist || 1);
+                            baseAppeal += bonus;
+                        }
+                        // Factory Pollution
+                        if (neighbor.building.type === 'factory') {
+                            let penalty = 20 / (dist || 1);
+                            baseAppeal -= penalty;
+                        }
+                        // Metro Boost (Does not affect appeal directly, but good for gameplay logic if expanded)
+                        if (neighbor.building.type === 'metro') {
+                            baseAppeal += (10 / (dist || 1));
+                        }
+
+                        if (neighbor.building.condition < 40) baseAppeal -= 5;
+                        if (neighbor.building.stats.type === 'com_high' || neighbor.owner === 'rival') {
+                             if(dist < 2) baseAppeal -= 2;
+                        }
+                    }
+
+                    // Zone/Terrain Modifiers
+                    if (neighbor.type === 'water') baseAppeal += (8 / (dist || 1));
+                    if (neighbor.type === 'road' && dist < 2) baseAppeal += 2;
+                    if (neighbor.zone === 'industrial' && dist < 3) baseAppeal -= 10;
+                }
+            }
+        }
+        tile.appeal = Math.min(100, Math.max(0, Math.floor(baseAppeal)));
+    }
+
+    isValidTile(x, y) {
+        return x >= 0 && x < CONSTANTS.GRID_WIDTH && y >= 0 && y < CONSTANTS.GRID_HEIGHT;
+    }
+
+    annualEvents() {
+        this.log(`--- YEAR ${this.year} ENDED ---`);
+        const PROPERTY_TAX_RATE = 0.015;
+        let totalAssetValue = 0;
+
+        for (let col of this.grid) {
+            for (let t of col) {
+                if(t.owner === 'player') {
+                    totalAssetValue += t.price * this.marketMultiplier;
+                    if(t.building) totalAssetValue += t.building.stats.cost;
+                }
+            }
+        }
+
+        let tax = Math.floor(totalAssetValue * PROPERTY_TAX_RATE);
+        this.cash -= tax;
+        this.log(`Annual Property Tax Paid: -$${tax.toLocaleString()}`, "trend-down");
+        this.year++;
+        this.log(`Year ${this.year} begun.`, "trend-flat");
+    }
+
+    // --- Actions ---
+
+    actions = {
+        buyLand: () => {
+            if (!this.selectedTile) return;
+            let cost = this.selectedTile.price * this.marketMultiplier;
+            if (this.cash >= cost) {
+                this.cash -= cost;
+                this.selectedTile.owner = 'player';
+                this.log(`Bought land for $${Math.floor(cost)}`);
+                this.spawnFloatingText("-$" + Math.floor(cost), this.selectedTile.x, this.selectedTile.y, '#e74c3c');
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
+            } else {
+                this.log("Not enough cash!", "trend-down");
+            }
+        },
+
+        sellLand: () => {
+            if (!this.selectedTile || this.selectedTile.owner !== 'player') return;
+
+            // Selling logic: 75% of land value + 50% of building cost
+            let landVal = this.selectedTile.price * this.marketMultiplier * 0.75;
+            let buildVal = this.selectedTile.building ? this.selectedTile.building.stats.cost * 0.5 : 0;
+            let total = Math.floor(landVal + buildVal);
+
+            if(confirm(`Sell this land and property for $${total.toLocaleString()}?`)) {
+                this.cash += total;
+                this.selectedTile.owner = null;
+                this.selectedTile.building = null;
+                this.log(`Sold property for $${total}`);
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
+            }
+        },
+
+        takeover: () => {
+            if (!this.selectedTile || this.selectedTile.owner !== 'rival') return;
+            let landCost = this.selectedTile.price * this.marketMultiplier * 2.5;
+            let buildCost = this.selectedTile.building ? this.selectedTile.building.stats.cost * 2 : 0;
+            let total = Math.floor(landCost + buildCost);
+
+            if (this.cash >= total) {
+                this.cash -= total;
+                this.selectedTile.owner = 'player';
+                if(this.selectedTile.building) {
+                    this.selectedTile.building.color = this.selectedTile.building.stats.color;
+                    this.selectedTile.building.name = this.selectedTile.building.stats.name;
+                    this.selectedTile.building.condition = Math.min(100, this.selectedTile.building.condition + 30);
+                }
+                this.log(`Hostile Takeover successful! (-$${total})`);
+                this.spawnFloatingText("TAKEOVER!", this.selectedTile.x, this.selectedTile.y, '#f1c40f');
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
+            } else {
+                this.log(`Need $${total} for takeover.`, "trend-down");
+            }
+        },
+
+        takeLoan: () => {
+            this.cash += 10000;
+            this.loan += 10000;
+            this.log("Borrowed $10,000.");
+            this.ui.updateStats();
+        },
+
+        repayLoan: () => {
+            if(this.loan >= 10000 && this.cash >= 10000) {
+                this.cash -= 10000;
+                this.loan -= 10000;
+                this.log("Repaid $10,000.");
+                this.ui.updateStats();
+            } else {
+                this.log("Cannot repay loan.", "trend-down");
+            }
+        },
+
+        openBuildMenu: () => {
+            this.ui.showBuildMenu();
+        },
+
+        build: (type) => {
+            if (!this.selectedTile) return;
+            if (this.selectedTile.type === 'road') {
+                this.log("Cannot build on road.", "trend-down");
                 return;
             }
-            try {
-                await window.CrazyGames.SDK.init();
-                CRAZYGAMES_ENV = window.CrazyGames.SDK.environment;
-                isCrazyGames = CRAZYGAMES_ENV === 'crazygames';
-                if (isCrazyGames) {
-                    gameStorage = window.CrazyGames.SDK.data;
-                    // **FIX**: Add SDK event listeners for mute/unmute
-                    window.CrazyGames.SDK.game.addEventListener('gameMuted', () => NEW_AUDIO_MANAGER.mute());
-                    window.CrazyGames.SDK.game.addEventListener('gameUnmuted', () => NEW_AUDIO_MANAGER.unmute());
-                }
-            } catch (e) {
-                console.warn('CrazyGames SDK initialization failed:', e);
+
+            let bData = CONSTANTS.BUILDING_TYPES[type];
+            if (!bData.allowed.includes(this.selectedTile.zone)) {
+                this.log(`ZONING ERROR: ${bData.name} not allowed in ${this.selectedTile.zone.toUpperCase()}.`, "trend-down");
+                return;
             }
-        }
-        async function callCrazyGamesEvent(eventFn, ...args) {
-            if (!isCrazyGames) return;
-            try {
-                await eventFn(...args);
-            } catch (e) {
-                console.warn('CrazyGames SDK event failed:', e);
-            }
-        }
-        // New Audio System v1.5: Enhanced with theme-specific background music URLs and clicking sounds (varied tones).
-        const CONFIG = {
-            themeColors: {
-                retro: { primary: [1.0, 0.0, 1.0], secondary: [0.0, 1.0, 1.0], accent: [1.0, 0.8, 0.0] },
-                fantasy: { primary: [0.545, 0.0, 0.0], secondary: [1.0, 0.843, 0.0], accent: [0.133, 0.545, 0.133] },
-                space: { primary: [0.0, 0.749, 1.0], secondary: [1.0, 0.273, 0.0], accent: [1.0, 0.843, 0.0] },
-                nature: { primary: [0.133, 0.545, 0.133], secondary: [0.2, 0.803, 0.2], accent: [1.0, 0.412, 0.706] },
-                food: { primary: [1.0, 0.388, 0.278], secondary: [1.0, 0.843, 0.0], accent: [1.0, 0.078, 0.576] }
-            },
-            bgmUrls: {
-                retro: 'https://soundimage.org/wp-content/uploads/2017/07/Arcade-Puzzler.mp3',
-                fantasy: 'https://soundimage.org/wp-content/uploads/2018/10/Our-Mountain_v003_Looping.mp3',
-                space: 'https://soundimage.org/wp-content/uploads/2014/10/Light-Years_v001.mp3',
-                nature: 'https://soundimage.org/wp-content/uploads/2014/07/Sunrise.mp3',
-                food: 'https://soundimage.org/wp-content/uploads/2016/10/Arcade-Fantasy.mp3'
-            },
-            sfxThemes: {
-                retro: { buttonFreq: 440, buttonType: 'square', flipFreq: 440, flipType: 'sawtooth' },
-                fantasy: { buttonFreq: 392, buttonType: 'triangle', flipFreq: 392, flipType: 'sine' },
-                space: { buttonFreq: 523, buttonType: 'sawtooth', flipFreq: 523, flipType: 'sawtooth' },
-                nature: { buttonFreq: 349, buttonType: 'sine', flipFreq: 349, flipType: 'sine' },
-                food: { buttonFreq: 466, buttonType: 'square', flipFreq: 466, flipType: 'triangle' }
-            },
-            difficultySettings: {
-                easy: { rows: 3, cols: 4, timeLimit: 120 },
-                normal: { rows: 4, cols: 4, timeLimit: 180 },
-                hard: { rows: 6, cols: 6, timeLimit: 300 }
-            },
-            scoring: { baseScore: 100, timeBonusMax: 200, timeBonusDivisor: 10, comboMultiplier: 0.5 },
-            powerUps: { hint: 3, shuffle: 2, freeze: 1 },
-            themes: {
-                retro: ['🎮', '📼', '🕹️', '💿', '🖥️', '🎤', '📺', '🔌'],
-                fantasy: ['⚔️', '🛡️', '👑', '🧙‍♂️', '🐉', '🗡️', '✨', '🪄'],
-                space: ['🚀', '🌌', '🪐', '👽', '⭐', '🌕', '🛸', '☄️'],
-                nature: ['🌳', '🌸', '🐦', '🦋', '🍃', '🌻', '🐝', '🍂'],
-                food: ['🍕', '🍔', '🍟', '🌮', '🍦', '🍩', '🥐', '🍫']
-            }
-        };
-        let GAME_STATE = {
-            options: { difficulty: 'easy', theme: 'retro', music: false, sound: true, colorblind: false, 'high-contrast': false, 'dynamic-bg': true, 'low-performance': false },
-            currentDifficulty: 'easy', currentTheme: 'retro', gameStarted: false, gamePaused: false, moves: 0, timer: 0, matchedPairs: 0, mismatches: 0,
-            flippedCards: [], cards: [], playerScores: [0], currentPlayer: 0, totalPairs: 6, isMultiplayer: false, timerInterval: null, freezeInterval: null
-        };
-        let ENHANCED_STATE = { currentCombo: 0, maxCombo: 0, streakMultiplier: 1, powerUps: { ...CONFIG.powerUps }, freezeTimeActive: false, freezeTimeRemaining: 10 };
-        let GAME_STATS = {
-            gamesPlayed: 0, gamesWon: 0, totalMoves: 0, totalTime: 0, totalMismatches: 0, bestTime: Infinity, minMoves: Infinity, perfectGames: 0,
-            highestScore: 0, highestCombo: 0, powerupsUsed: 0, cardsCollected: 0, multiplayerWins: 0
-        };
-        const ACHIEVEMENTS = [
-            { id: 'first_win', name: 'First Victory', desc: 'Win your first game', icon: '🏆', earned: false },
-            { id: 'speed_demon', name: 'Speed Demon', desc: 'Win in under 60 seconds', icon: '⚡', earned: false },
-            { id: 'perfect_game', name: 'Perfect Game', desc: 'Win with no mismatches', icon: '💯', earned: false },
-            { id: 'combo_master', name: 'Combo Master', desc: 'Get a 5x combo', icon: '🔥', earned: false },
-            { id: 'night_owl', name: 'Night Owl', desc: 'Play 10 games', icon: '🌙', earned: false },
-            { id: 'power_up_master', name: 'Power-Up Pro', desc: 'Use 5 power-ups', icon: '🛠️', earned: false },
-            { id: 'quick_thinker', name: 'Quick Thinker', desc: 'Win in under 30 seconds', icon: '🧠', earned: false },
-            { id: 'minimalist', name: 'Minimalist', desc: 'Win with under 10 moves', icon: '🎯', earned: false }
-        ];
-        const CARD_COLLECTION = [
-            { id: 1, name: 'Victory Star', icon: '⭐', description: 'Earned by scoring over 2000 points', unlocked: false },
-            { id: 2, name: 'Speed Badge', icon: '⚡', description: 'Unlocked by winning in under 60s', unlocked: false },
-            { id: 3, name: 'Combo Crown', icon: '👑', description: 'Achieved with a 5x combo', unlocked: false },
-            { id: 4, name: 'Perfect Shield', icon: '🛡️', description: 'No mismatches in a game', unlocked: false },
-            { id: 5, name: 'Multiplayer Trophy', icon: '🏆', description: 'Win 3 multiplayer games', unlocked: false }
-        ];
-        const ELEMENTS = {
-            sections: document.querySelectorAll('.section'),
-            loadingIndicator: document.getElementById('loading-indicator'),
-            dynamicBg: document.getElementById('dynamic-bg'),
-            startBtn: document.getElementById('start-btn'),
-            resetBtn: document.getElementById('reset-btn'),
-            pauseBtn: document.getElementById('pause-btn'),
-            multiplayerBtn: document.getElementById('multiplayer-btn'),
-            hintBtn: document.getElementById('hint-btn'),
-            shuffleBtn: document.getElementById('shuffle-btn'),
-            freezeBtn: document.getElementById('freeze-btn'),
-            freezeDisplay: document.getElementById('freeze-display'),
-            freezeTime: document.getElementById('freeze-time'),
-            gameBoard: document.getElementById('game-board'),
-            startMessage: document.getElementById('start-message'),
-            timerDisplay: document.getElementById('timer'),
-            movesDisplay: document.getElementById('moves'),
-            matchesDisplay: document.getElementById('matches'),
-            scoreDisplay: document.getElementById('score'),
-            comboDisplay: document.getElementById('combo'),
-            multiplierDisplay: document.getElementById('multiplier'),
-            progressFill: document.getElementById('progress-fill'),
-            multiplayerIndicator: document.getElementById('multiplayer-indicator'),
-            player1Indicator: document.getElementById('player1-indicator'),
-            player2Indicator: document.getElementById('player2-indicator'),
-            player1Score: document.getElementById('player1-score'),
-            player2Score: document.getElementById('player2-score'),
-            achievementsList: document.getElementById('achievements-list'),
-            statsList: document.getElementById('stats-list'),
-            nextGoal: document.getElementById('next-goal'),
-            syncedBadge: document.getElementById('synced-badge'),
-            cardCollectionContainer: document.getElementById('card-collection'),
-            comboIndicator: document.getElementById('combo-indicator'),
-            winAnimation: document.getElementById('win-animation'),
-            winTitle: document.getElementById('win-title'),
-            winStats: document.getElementById('win-stats'),
-            continueBtn: document.getElementById('continue-btn'),
-            bgMusic: document.getElementById('bg-music'),
-            musicModal: document.getElementById('music-modal'),
-            enableMusicBtn: document.getElementById('enable-music-btn')
-        };
-        // New Simple Audio Manager
-        const NEW_AUDIO_MANAGER = {
-            audioContext: null,
-            musicEnabled: true,
-            soundEnabled: true,
-            isMuted: false,
-            masterGain: null,
-            async initContext() {
-                if (!this.audioContext) {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    this.masterGain = this.audioContext.createGain();
-                    this.masterGain.connect(this.audioContext.destination);
-                    this.updateMasterGain();
-                }
-                if (this.audioContext.state === 'suspended') {
-                    await this.audioContext.resume();
-                }
-            },
-            updateMasterGain() {
-                if (this.masterGain) {
-                    this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : (this.soundEnabled ? 1 : 0), this.audioContext.currentTime);
-                }
-            },
-            mute() {
-                this.isMuted = true;
-                if (ELEMENTS.bgMusic) ELEMENTS.bgMusic.muted = true;
-                this.updateMasterGain();
-            },
-            unmute() {
-                this.isMuted = false;
-                if (ELEMENTS.bgMusic) ELEMENTS.bgMusic.muted = false;
-                this.updateMasterGain();
-            },
-            async playTone(freq, duration = 0.2, type = 'square', volume = 0.1) {
-                if (!this.soundEnabled || this.isMuted) return;
-                await this.initContext();
-                const ctx = this.audioContext;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(this.masterGain);
-                osc.frequency.value = freq;
-                osc.type = type;
-                gain.gain.setValueAtTime(volume, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-                osc.start(ctx.currentTime);
-                osc.stop(ctx.currentTime + duration);
-            },
-            async playBGM() {
-                if (!this.musicEnabled || this.isMuted || !ELEMENTS.bgMusic) return;
-                const currentUrl = currentBGMUrl || CONFIG.bgmUrls[GAME_STATE.currentTheme] || CONFIG.bgmUrls.retro;
-                if (!ELEMENTS.bgMusic.src || ELEMENTS.bgMusic.src.indexOf(currentUrl.split('/').pop()) === -1) {
-                    await updateBGM(GAME_STATE.currentTheme);
-                    return;
-                }
-                if (ELEMENTS.bgMusic.paused) {
-                    try {
-                        await ELEMENTS.bgMusic.play();
-                    } catch (e) {
-                        console.warn('Failed to play BGM:', e);
-                    }
-                }
-            },
-            stopBGM() {
-                if (ELEMENTS.bgMusic) {
-                    ELEMENTS.bgMusic.pause();
-                    ELEMENTS.bgMusic.currentTime = 0;
-                }
-            },
-            async toggleMusic() {
-                this.musicEnabled = !this.musicEnabled;
-                if (this.musicEnabled) {
-                    await this.playBGM();
-                } else {
-                    this.stopBGM();
-                }
-            },
-            async toggleSound() {
-                this.soundEnabled = !this.soundEnabled;
-                this.updateMasterGain();
-                if (isCrazyGames) {
-                    if (this.soundEnabled) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameUnmuted());
-                    } else {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameMuted());
-                    }
-                }
-            },
-            // Game-specific SFX
-            async playFlip() {
-                const sfx = CONFIG.sfxThemes[GAME_STATE.currentTheme] || CONFIG.sfxThemes.retro;
-                await this.playTone(sfx.flipFreq, 0.1, sfx.flipType, 0.08);
-            },
-            async playMatch() { await this.playTone(523.25, 0.3, 'sine', 0.15); },
-            async playMismatch() { await this.playTone(220, 0.2, 'sawtooth', 0.1); },
-            async playCombo(level) { await this.playTone(659.25 + level * 50, 0.4, 'square', 0.12); },
-            async playPowerUp() { await this.playTone(392, 0.2, 'triangle', 0.1); },
-            async playButton() {
-                const sfx = CONFIG.sfxThemes[GAME_STATE.currentTheme] || CONFIG.sfxThemes.retro;
-                await this.playTone(sfx.buttonFreq, 0.05, sfx.buttonType, 0.05);
-            },
-            async playWin() {
-                // keep calls consistent with playTone signature (freq, duration, type, volume)
-                await Promise.all([
-                    this.playTone(523.25, 0.5, 'sine', 0.2),
-                    this.playTone(659.25, 0.5, 'sine', 0.2),
-                    this.playTone(783.99, 0.5, 'sine', 0.2)
-                ]);
-            }
-        };
-        // Utility Functions
-        const STORAGE_KEY = 'retroCardMatch';
-        const SAVE_DEBOUNCE_MS = 500;
-        let saveTimeout = null;
-        let currentBGMUrl = '';
-        function debounceSave() {
-            if (saveTimeout) clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(saveGameData, SAVE_DEBOUNCE_MS);
-        }
-        function loadGameData() {
-            try {
-                const saved = gameStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    Object.assign(GAME_STATE.options, data.options || {});
-                    Object.assign(GAME_STATS, data.stats || {});
-                    ACHIEVEMENTS.forEach(ach => ach.earned = data.achievements?.[ach.id] || false);
-                    CARD_COLLECTION.forEach(card => card.unlocked = data.cardCollection?.[card.id] || false);
-                }
-            } catch (e) {
-                console.warn('Failed to load game data:', e);
-            }
-        }
-        function saveGameData() {
-            try {
-                const data = {
-                    options: GAME_STATE.options,
-                    stats: GAME_STATS,
-                    achievements: ACHIEVEMENTS.reduce((acc, ach) => ({ ...acc, [ach.id]: ach.earned }), {}),
-                    cardCollection: CARD_COLLECTION.reduce((acc, card) => ({ ...acc, [card.id]: card.unlocked }), {})
+
+            let cost = bData.cost;
+            if (this.cash >= cost) {
+                this.cash -= cost;
+                this.selectedTile.building = {
+                    type: type,
+                    name: bData.name,
+                    level: 1,
+                    condition: 100,
+                    maintenance: bData.maintenance,
+                    baseRent: bData.baseRent,
+                    stats: bData,
+                    color: bData.color
                 };
-                gameStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            } catch (e) {
-                console.warn('Failed to save game data:', e);
-            }
-        }
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-        function clearIntervals() {
-            [GAME_STATE.timerInterval, GAME_STATE.freezeInterval].forEach(clearInterval);
-            GAME_STATE.timerInterval = GAME_STATE.freezeInterval = null;
-        }
-        // WebGL Background
-        (function() {
-            let gl, program, vbo, uTime, uResolution, uColor1Loc, uColor2Loc, uColor3Loc, renderLoopId, frameCount = 0, isWebGLSupported = false, isDynamicBGEnabled = true, resizeTimeout;
-            const canvas = document.getElementById('webgl-canvas'), dynamicBg = document.getElementById('dynamic-bg');
-            function initWebGL() {
-                try {
-                    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                    if (!gl) throw new Error('WebGL not supported');
-                    // Set initial canvas dimensions using window size to avoid zero size issues
-                    const dpr = window.devicePixelRatio || 1;
-                    const width = window.innerWidth * dpr;
-                    const height = window.innerHeight * dpr;
-                    canvas.width = width;
-                    canvas.height = height;
-                    gl.viewport(0, 0, width, height);
-                    canvas.style.width = canvas.style.height = '100%';
-                    const vsSource = document.getElementById('vertex-shader').textContent, fsSource = document.getElementById('fragment-shader').textContent;
-                    const vs = gl.createShader(gl.VERTEX_SHADER), fs = gl.createShader(gl.FRAGMENT_SHADER);
-                    gl.shaderSource(vs, vsSource);
-                    gl.compileShader(vs);
-                    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
-                        const infoLog = gl.getShaderInfoLog(vs);
-                        gl.deleteShader(vs);
-                        throw new Error(`Vertex shader compilation failed: ${infoLog}`);
-                    }
-                    gl.shaderSource(fs, fsSource);
-                    gl.compileShader(fs);
-                    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
-                        const infoLog = gl.getShaderInfoLog(fs);
-                        gl.deleteShader(fs);
-                        throw new Error(`Fragment shader compilation failed: ${infoLog}`);
-                    }
-                    program = gl.createProgram();
-                    gl.attachShader(program, vs);
-                    gl.attachShader(program, fs);
-                    gl.linkProgram(program);
-                    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-                        const infoLog = gl.getProgramInfoLog(program);
-                        gl.deleteProgram(program);
-                        throw new Error(`Program linking failed: ${infoLog}`);
-                    }
-                    gl.useProgram(program);
-                    const vertices = new Float32Array([-1,-1, 1,-1, -1,1, 1,-1, 1,1, -1,1]);
-                    vbo = gl.createBuffer();
-                    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-                    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-                    const positionLoc = gl.getAttribLocation(program, 'a_position');
-                    gl.enableVertexAttribArray(positionLoc);
-                    gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
-                    uTime = gl.getUniformLocation(program, 'u_time');
-                    uResolution = gl.getUniformLocation(program, 'u_resolution');
-                    uColor1Loc = gl.getUniformLocation(program, 'u_color1');
-                    uColor2Loc = gl.getUniformLocation(program, 'u_color2');
-                    uColor3Loc = gl.getUniformLocation(program, 'u_color3');
-                    const themeColors = CONFIG.themeColors[GAME_STATE.currentTheme] || CONFIG.themeColors.retro;
-                    const colorArrays = [themeColors.primary, themeColors.secondary, themeColors.accent];
-                    [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => {
-                        if (loc) {
-                            gl.uniform3fv(loc, new Float32Array(colorArrays[i]));
-                        }
-                    });
-                    gl.uniform2f(uResolution, canvas.width, canvas.height);
-                    const debouncedResize = () => {
-                        if (resizeTimeout) clearTimeout(resizeTimeout);
-                        resizeTimeout = setTimeout(() => {
-                            const dpr = window.devicePixelRatio || 1;
-                            const width = canvas.clientWidth * dpr || window.innerWidth * dpr;
-                            const height = canvas.clientHeight * dpr || window.innerHeight * dpr;
-                            canvas.width = width;
-                            canvas.height = height;
-                            if (gl) gl.viewport(0, 0, width, height);
-                            if (uResolution) gl.uniform2f(uResolution, width, height);
-                        }, 100);
-                    };
-                    window.addEventListener('resize', debouncedResize);
-                    // Trigger initial resize
-                    debouncedResize();
-                    isWebGLSupported = true;
-                } catch (error) {
-                    console.warn('WebGL initialization failed:', error);
-                    if (renderLoopId) cancelAnimationFrame(renderLoopId);
-                    canvas.style.display = 'none';
-                    dynamicBg.style.display = 'none';
-                    document.body.classList.add('fallback-bg');
-                    isWebGLSupported = false;
-                }
-                window.isWebGLSupported = isWebGLSupported;
-            }
-            window.initWebGL = initWebGL;
-            window.updateShaderColors = theme => {
-                if (!gl || !isWebGLSupported) return;
-                const themeColors = CONFIG.themeColors[theme] || CONFIG.themeColors.retro;
-                const colorArrays = [themeColors.primary, themeColors.secondary, themeColors.accent];
-                [uColor1Loc, uColor2Loc, uColor3Loc].forEach((loc, i) => {
-                    if (loc) {
-                        gl.uniform3fv(loc, new Float32Array(colorArrays[i]));
-                    }
-                });
-            };
-            window.toggleDynamicBG = enabled => {
-                isDynamicBGEnabled = enabled;
-                if (enabled && isWebGLSupported) {
-                    dynamicBg.style.display = 'block';
-                    document.body.classList.remove('fallback-bg');
-                    const dpr = window.devicePixelRatio || 1;
-                    const width = canvas.clientWidth * dpr || window.innerWidth * dpr;
-                    const height = canvas.clientHeight * dpr || window.innerHeight * dpr;
-                    canvas.width = width;
-                    canvas.height = height;
-                    canvas.style.width = canvas.style.height = '100%';
-                    if (gl) gl.viewport(0, 0, width, height);
-                    if (uResolution) gl.uniform2f(uResolution, width, height);
-                    if (program && !renderLoopId) renderLoopId = requestAnimationFrame(render);
-                } else {
-                    dynamicBg.style.display = 'none';
-                    document.body.classList.add('fallback-bg');
-                    if (renderLoopId) {
-                        cancelAnimationFrame(renderLoopId);
-                        renderLoopId = null;
-                    }
-                }
-            };
-            function render(currentTime) {
-                if (!isDynamicBGEnabled || !gl || canvas.width === 0 || canvas.height === 0) {
-                    renderLoopId = requestAnimationFrame(render);
-                    return;
-                }
-                frameCount++;
-                const throttle = GAME_STATE.options['low-performance'] ? 4 : 1;
-                if (frameCount % throttle !== 0) {
-                    renderLoopId = requestAnimationFrame(render);
-                    return;
-                }
-                if (uTime) gl.uniform1f(uTime, currentTime * 0.001);
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-                renderLoopId = requestAnimationFrame(render);
-            }
-            window.renderWebGL = render;
-        })();
-        // Game Logic Functions
-        async function updateBGM(theme) {
-            const url = CONFIG.bgmUrls[theme] || CONFIG.bgmUrls.retro;
-            try {
-                if (ELEMENTS.bgMusic.src.indexOf(url.split('/').pop()) === -1) {
-                    currentBGMUrl = url;
-                    ELEMENTS.bgMusic.src = url;
-                    if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted) {
-                        await new Promise((resolve, reject) => {
-                            const onLoaded = () => {
-                                ELEMENTS.bgMusic.play().then(resolve).catch(reject);
-                            };
-                            const onError = (e) => {
-                                console.warn('BGM load error:', e);
-                                reject(e);
-                            };
-                            ELEMENTS.bgMusic.addEventListener('canplaythrough', onLoaded, {once: true});
-                            ELEMENTS.bgMusic.addEventListener('error', onError, {once: true});
-                            ELEMENTS.bgMusic.load();
-                        });
-                    } else {
-                        ELEMENTS.bgMusic.load();
-                    }
-                } else if (NEW_AUDIO_MANAGER.musicEnabled && !NEW_AUDIO_MANAGER.isMuted && ELEMENTS.bgMusic.paused) {
-                    await ELEMENTS.bgMusic.play();
-                }
-            } catch (e) {
-                console.warn('Failed to update BGM for theme', theme, e);
-            }
-        }
-        async function updateThemeColors(theme) {
-            document.body.dataset.theme = theme;
-            window.updateShaderColors(theme);
-            await updateBGM(theme);
-        }
-        function updateSyncedBadge() {
-            if (isCrazyGames) {
-                ELEMENTS.syncedBadge.classList.add('active');
-            }
-        }
-        async function initGame() {
-            // **FIX**: Inform SDK that loading has started
-            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStart());
-
-            loadGameData();
-            GAME_STATE.currentDifficulty = GAME_STATE.options.difficulty || 'easy';
-            GAME_STATE.currentTheme = GAME_STATE.options.theme || 'retro';
-            NEW_AUDIO_MANAGER.musicEnabled = GAME_STATE.options.music ?? false;
-            NEW_AUDIO_MANAGER.soundEnabled = GAME_STATE.options.sound ?? true;
-            updateAllOptionButtons();
-            await updateThemeColors(GAME_STATE.currentTheme);
-
-            await initCrazyGamesSDK(); // Await SDK initialization
-            if(isCrazyGames) loadGameData(); // Reload from cloud data if available
-
-            // Initialize dynamic background
-            document.body.classList.add('fallback-bg');
-            if (GAME_STATE.options['dynamic-bg']) {
-                window.initWebGL();
-                if (window.isWebGLSupported) {
-                    window.toggleDynamicBG(true);
-                    createBackgroundParticles();
-                }
-            }
-            
-            // Hide loading indicator after fade
-            ELEMENTS.loadingIndicator.style.opacity = '0';
-            await new Promise(resolve => setTimeout(resolve, 300));
-            ELEMENTS.loadingIndicator.style.display = 'none';
-
-            // **FIX**: Inform SDK that loading is complete
-            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.loadingStop());
-            
-            document.body.classList.add('loaded');
-            if (GAME_STATE.options.music) {
-                await NEW_AUDIO_MANAGER.playBGM();
+                this.log(`Built ${bData.name} for $${cost}`);
+                this.spawnFloatingText("BUILT!", this.selectedTile.x, this.selectedTile.y, '#f1c40f');
+                this.ui.closeBuildMenu();
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
             } else {
-                ELEMENTS.musicModal.style.display = 'flex';
+                this.log("Insufficient funds.", "trend-down");
             }
-            ELEMENTS.enableMusicBtn.addEventListener('click', async () => {
-                GAME_STATE.options.music = true;
-                NEW_AUDIO_MANAGER.musicEnabled = true;
-                await NEW_AUDIO_MANAGER.playBGM();
-                ELEMENTS.musicModal.style.display = 'none';
-                saveGameData();
-            });
-            setupNavigation();
-            initGameScreen();
-            initOptionsScreen();
-            updateAchievementsDisplay();
-            updateStatsDisplay();
-            updateCardCollectionDisplay();
-            resetGame();
-            debounceSave();
-        }
-        function createBackgroundParticles() {
-            const bgContainer = ELEMENTS.dynamicBg;
-            const particleCount = GAME_STATE.options['low-performance'] ? 3 : (window.innerWidth < 768 ? 10 : 20);
-            const fragment = document.createDocumentFragment();
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'bg-particle';
-                const size = Math.random() * 40 + 10;
-                particle.style.width = particle.style.height = `${size}px`;
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                const colors = ['rgba(255, 0, 255, 0.3)', 'rgba(0, 255, 255, 0.3)', 'rgba(255, 204, 0, 0.3)'];
-                particle.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * colors.length)]} 0%, rgba(255,0,255,0) 70%)`;
-                particle.style.animationDuration = `${Math.random() * 10 + 15}s`;
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                fragment.appendChild(particle);
-            }
-            bgContainer.appendChild(fragment);
-        }
-        async function setupNavigation() {
-            [...document.querySelectorAll('.menu-btn, .back-btn')].forEach(button => {
-                button.addEventListener('click', async e => {
-                    e.preventDefault();
-                    await NEW_AUDIO_MANAGER.playButton();
-                    const target = button.dataset.target;
-                    const isLeavingGame = document.getElementById('game-screen').classList.contains('active') && GAME_STATE.gameStarted;
-                    
-                    // **FIX**: Inform SDK that gameplay has stopped when leaving the game screen
-                    if (isLeavingGame) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
-                    }
-                    
-                    await showSection(target);
-                });
-            });
+        },
 
-            // **FIX**: Add ad call on continue button
-            ELEMENTS.continueBtn.addEventListener('click', async e => {
-                e.preventDefault();
-                await NEW_AUDIO_MANAGER.playButton();
-                ELEMENTS.winAnimation.classList.remove('active');
-                
-                // Show a mid-game ad after a game is won
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.ad.requestAd('midgame'));
+        renovate: () => {
+            if (!this.selectedTile || !this.selectedTile.building) return;
+            let b = this.selectedTile.building;
+            let cost = 1000 * b.level;
 
-                if (NEW_AUDIO_MANAGER.musicEnabled) await NEW_AUDIO_MANAGER.playBGM();
-            });
-        }
-        async function showSection(sectionId) {
-            ELEMENTS.sections.forEach(s => s.classList.remove('active'));
-            const target = document.getElementById(sectionId);
-            if (target) {
-                target.classList.add('active');
-                currentSection = sectionId;
-                if (sectionId === 'game-screen') {
-                    resetGame();
-                }
-                if (sectionId === 'achievements-screen') updateAchievementsDisplay();
-                else if (sectionId === 'statistics-screen') {
-                    updateStatsDisplay();
-                    updateSyncedBadge();
-                }
-                else if (sectionId === 'collection-screen') updateCardCollectionDisplay();
-            }
-            if (NEW_AUDIO_MANAGER.musicEnabled) {
-                await NEW_AUDIO_MANAGER.playBGM();
-            }
-        }
-        function initGameScreen() {
-            const handlers = {
-                startBtn: async e => {
-                    e.preventDefault();
-                    await NEW_AUDIO_MANAGER.playButton();
-                    if (GAME_STATE.gameStarted) {
-                        if (GAME_STATE.gamePaused) {
-                            await togglePause();
-                        } else {
-                            resetGame();
-                        }
-                    } else {
-                        await startGame();
-                    }
-                },
-                resetBtn: async e => {
-                    e.preventDefault();
-                    await NEW_AUDIO_MANAGER.playButton();
-                    if (GAME_STATE.gameStarted) {
-                        await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
-                    }
-                    resetGame();
-                },
-                pauseBtn: async e => {
-                    e.preventDefault();
-                    await togglePause();
-                },
-                multiplayerBtn: async e => {
-                    e.preventDefault();
-                    await NEW_AUDIO_MANAGER.playButton();
-                    toggleMultiplayer();
-                },
-                hintBtn: async e => {
-                    e.preventDefault();
-                    await useHint();
-                },
-                shuffleBtn: async e => {
-                    e.preventDefault();
-                    await useShuffle();
-                },
-                freezeBtn: async e => {
-                    e.preventDefault();
-                    await useFreeze();
-                }
-            };
-            Object.entries(handlers).forEach(([id, handler]) => ELEMENTS[id].addEventListener('click', handler));
-            let touchStartX = 0, touchStartY = 0;
-            ELEMENTS.gameBoard.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }, { passive: true });
-            ELEMENTS.gameBoard.addEventListener('touchend', e => {
-                const deltaX = e.changedTouches[0].clientX - touchStartX;
-                const deltaY = e.changedTouches[0].clientY - touchStartY;
-                if (Math.abs(deltaX) < 30 && Math.abs(deltaY) < 30) {
-                    const card = document.elementFromPoint(touchStartX, touchStartY);
-                    if (card?.classList.contains('card')) flipCard(card);
-                }
-            }, { passive: true });
-            updatePowerUpButtons();
-        }
-        function initOptionsScreen() {
-            document.querySelectorAll('.option-btn').forEach(button => {
-                button.addEventListener('click', async e => {
-                    e.preventDefault();
-                    await NEW_AUDIO_MANAGER.playButton();
-                    const option = button.dataset.option, value = button.dataset.value;
-                    let updatedValue = value;
-                    switch (option) {
-                        case 'difficulty':
-                            GAME_STATE.options.difficulty = GAME_STATE.currentDifficulty = value;
-                            break;
-                        case 'theme':
-                            GAME_STATE.options.theme = GAME_STATE.currentTheme = value;
-                            await updateThemeColors(value);
-                            break;
-                        case 'music':
-                            await NEW_AUDIO_MANAGER.toggleMusic();
-                            GAME_STATE.options.music = NEW_AUDIO_MANAGER.musicEnabled;
-                            updatedValue = NEW_AUDIO_MANAGER.musicEnabled ? 'on' : 'off';
-                            break;
-                        case 'sound':
-                            await NEW_AUDIO_MANAGER.toggleSound();
-                            GAME_STATE.options.sound = NEW_AUDIO_MANAGER.soundEnabled;
-                            updatedValue = NEW_AUDIO_MANAGER.soundEnabled ? 'on' : 'off';
-                            break;
-                        case 'colorblind':
-                            GAME_STATE.options.colorblind = !GAME_STATE.options.colorblind;
-                            document.body.classList.toggle('colorblind-mode', GAME_STATE.options.colorblind);
-                            updatedValue = GAME_STATE.options.colorblind ? 'on' : 'off';
-                            break;
-                        case 'high-contrast':
-                            GAME_STATE.options['high-contrast'] = !GAME_STATE.options['high-contrast'];
-                            document.body.classList.toggle('high-contrast-mode', GAME_STATE.options['high-contrast']);
-                            updatedValue = GAME_STATE.options['high-contrast'] ? 'on' : 'off';
-                            break;
-                        case 'dynamic-bg':
-                            GAME_STATE.options['dynamic-bg'] = !GAME_STATE.options['dynamic-bg'];
-                            window.toggleDynamicBG(GAME_STATE.options['dynamic-bg']);
-                            updatedValue = GAME_STATE.options['dynamic-bg'] ? 'on' : 'off';
-                            break;
-                        case 'low-performance':
-                            GAME_STATE.options['low-performance'] = !GAME_STATE.options['low-performance'];
-                            const particles = ELEMENTS.dynamicBg.querySelectorAll('.bg-particle');
-                            particles.forEach(p => p.remove());
-                            createBackgroundParticles();
-                            window.toggleDynamicBG(!GAME_STATE.options['low-performance'] && GAME_STATE.options['dynamic-bg']);
-                            updatedValue = GAME_STATE.options['low-performance'] ? 'on' : 'off';
-                            break;
-                    }
-                    saveGameData();
-                    updateOptionButtons(option, updatedValue, button);
-                });
-            });
-        }
-        function updateAllOptionButtons() {
-            ['difficulty', 'theme', 'music', 'sound', 'colorblind', 'high-contrast', 'dynamic-bg', 'low-performance'].forEach(option => {
-                document.querySelectorAll(`[data-option="${option}"]`).forEach(button => {
-                    const value = button.dataset.value;
-                    if (['difficulty', 'theme'].includes(option)) {
-                        button.classList.toggle('active', value === GAME_STATE.options[option]);
-                    } else {
-                        const currentValue = GAME_STATE.options[option] ? 'on' : 'off';
-                        button.textContent = button.textContent.replace(/ON|OFF/, currentValue.toUpperCase());
-                        button.dataset.value = currentValue;
-                        button.classList.toggle('active', currentValue === 'on');
-                    }
-                });
-            });
-        }
-        function updateOptionButtons(option, value, clickedButton) {
-            if (!['music', 'sound', 'colorblind', 'high-contrast', 'dynamic-bg', 'low-performance'].includes(option)) {
-                document.querySelectorAll(`[data-option="${option}"]`).forEach(b => b.classList.remove('active'));
-                clickedButton.classList.add('active');
+            if (b.condition === 100) return;
+
+            if (this.cash >= cost) {
+                this.cash -= cost;
+                b.condition = 100;
+                this.log("Renovated building.");
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
             } else {
-                clickedButton.textContent = clickedButton.textContent.replace(/ON|OFF/, value.toUpperCase());
-                clickedButton.dataset.value = value;
-                clickedButton.classList.toggle('active', value === 'on');
+                this.log(`Need $${cost} to renovate.`);
+            }
+        },
+
+        upgrade: () => {
+            if (!this.selectedTile || !this.selectedTile.building) return;
+            let b = this.selectedTile.building;
+            let cost = b.stats.cost * (b.level + 1) * 0.8;
+
+            if (b.level >= 5) {
+                this.log("Max level reached.");
+                return;
+            }
+
+            if (this.cash >= cost) {
+                this.cash -= cost;
+                b.level++;
+                b.condition = 100;
+                this.log(`Upgraded to Level ${b.level}!`);
+                this.spawnFloatingText("LVL UP!", this.selectedTile.x, this.selectedTile.y, '#2ecc71');
+                this.ui.renderSelection(this.selectedTile);
+                this.ui.updateStats();
+            } else {
+                this.log(`Need $${cost} to upgrade.`);
+            }
+        },
+
+        demolish: () => {
+             if (!this.selectedTile || !this.selectedTile.building) return;
+             if(confirm("Demolish building?")) {
+                 let scrapValue = 1000;
+                 this.cash += scrapValue;
+                 this.selectedTile.building = null;
+                 this.log(`Demolished.`);
+                 this.ui.renderSelection(this.selectedTile);
+                 this.ui.updateStats();
+             }
+        },
+
+        toggleService: (serviceName) => {
+            this.services[serviceName] = !this.services[serviceName];
+            if (this.services[serviceName]) {
+                this.log(`Activated ${serviceName.toUpperCase()}.`);
+            } else {
+                this.log(`Deactivated ${serviceName.toUpperCase()}.`);
+            }
+            this.ui.updateServices();
+            this.ui.updateStats();
+        }
+    };
+
+    // --- Rendering ---
+
+    resize() {
+        this.width = document.getElementById('viewport').offsetWidth;
+        this.height = document.getElementById('viewport').offsetHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+    }
+
+    draw() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        this.ctx.save();
+
+        // --- 1. ZOOM & CAMERA TRANSFORMATIONS ---
+
+        // Translate to Center
+        this.ctx.translate(this.width/2, this.height/2);
+        // Apply Scale
+        this.ctx.scale(this.zoom, this.zoom);
+        // Translate back
+        this.ctx.translate(-this.width/2, -this.height/2);
+
+        // Apply Camera offset centered relative to grid size
+        let cx = this.camera.x + this.width/2 - (CONSTANTS.GRID_WIDTH * CONSTANTS.TILE_SIZE)/2;
+        let cy = this.camera.y + this.height/2 - (CONSTANTS.GRID_HEIGHT * CONSTANTS.TILE_SIZE)/2;
+        this.ctx.translate(cx, cy);
+
+        // --- 2. WORLD RENDERING ---
+
+        // Draw Tiles
+        for (let x = 0; x < CONSTANTS.GRID_WIDTH; x++) {
+            for (let y = 0; y < CONSTANTS.GRID_HEIGHT; y++) {
+                if (this.grid[x] && this.grid[x][y]) {
+                    this.drawTile(this.grid[x][y], x * CONSTANTS.TILE_SIZE, y * CONSTANTS.TILE_SIZE);
+                }
             }
         }
-        function updateAchievementsDisplay() {
-            const fragment = document.createDocumentFragment();
-            ACHIEVEMENTS.forEach(ach => {
-                const el = document.createElement('div');
-                el.className = `achievement ${ach.earned ? 'earned' : ''}`;
-                el.innerHTML = `<div class="achievement-name">${ach.icon} ${ach.name}</div><div class="achievement-desc">${ach.desc}</div>`;
-                fragment.appendChild(el);
-            });
-            ELEMENTS.achievementsList.innerHTML = '';
-            ELEMENTS.achievementsList.appendChild(fragment);
+
+        // Draw Floating Text (in world space)
+        this.ctx.font = "bold 20px VT323";
+        this.ctx.textAlign = "center";
+        for(let ft of this.floatingTexts) {
+            this.ctx.fillStyle = ft.color;
+            this.ctx.strokeStyle = "black";
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeText(ft.text, ft.x, ft.y);
+            this.ctx.fillText(ft.text, ft.x, ft.y);
         }
-        function updateStatsDisplay() {
-            const winRate = GAME_STATS.gamesPlayed > 0 ? Math.round((GAME_STATS.gamesWon / GAME_STATS.gamesPlayed) * 100) : 0;
-            const stats = [
-                { name: 'Games Played', value: GAME_STATS.gamesPlayed },
-                { name: 'Games Won', value: GAME_STATS.gamesWon },
-                { name: 'Win Rate', value: `${winRate}%` },
-                { name: 'Total Moves', value: GAME_STATS.totalMoves },
-                { name: 'Total Play Time', value: `${GAME_STATS.totalTime}s` },
-                { name: 'Best Time', value: GAME_STATS.bestTime === Infinity ? 'N/A' : `${GAME_STATS.bestTime}s` },
-                { name: 'Min Moves', value: GAME_STATS.minMoves === Infinity ? 'N/A' : GAME_STATS.minMoves },
-                { name: 'Perfect Games', value: GAME_STATS.perfectGames },
-                { name: 'Highest Score', value: GAME_STATS.highestScore },
-                { name: 'Highest Combo', value: `${GAME_STATS.highestCombo}x` },
-                { name: 'Power-ups Used', value: GAME_STATS.powerupsUsed },
-                { name: 'Total Mismatches', value: GAME_STATS.totalMismatches },
-                { name: 'Cards Collected', value: `${GAME_STATS.cardsCollected}/${CARD_COLLECTION.length}` },
-                { name: 'Multiplayer Wins', value: GAME_STATS.multiplayerWins }
-            ];
-            const fragment = document.createDocumentFragment();
-            stats.forEach(stat => {
-                const el = document.createElement('div');
-                el.className = 'stat-item';
-                el.innerHTML = `<div class="stat-name">${stat.name}</div><div class="stat-value">${stat.value}</div>`;
-                fragment.appendChild(el);
-            });
-            ELEMENTS.statsList.innerHTML = '';
-            ELEMENTS.statsList.appendChild(fragment);
-            const nextGoals = [
-                { condition: GAME_STATS.gamesPlayed < 10, text: 'Play 10 more games for Night Owl achievement!' },
-                { condition: GAME_STATS.powerupsUsed < 5, text: 'Use 5 more power-ups for Power-Up Pro!' },
-                { condition: winRate < 50, text: 'Win more games to boost your win rate!' },
-                { condition: GAME_STATS.cardsCollected < CARD_COLLECTION.length, text: 'Collect more cards by achieving goals!' }
-            ];
-            ELEMENTS.nextGoal.innerHTML = `<strong>Next Goal:</strong> ${nextGoals.find(g => g.condition)?.text || 'Great job! Keep pushing for more achievements.'}`;
+
+        // Selection Box
+        if (this.selectedTile) {
+            this.ctx.strokeStyle = '#f1c40f';
+            this.ctx.lineWidth = 4;
+            this.ctx.strokeRect(this.selectedTile.x * CONSTANTS.TILE_SIZE, this.selectedTile.y * CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE);
         }
-        function updateCardCollectionDisplay() {
-            const fragment = document.createDocumentFragment();
-            CARD_COLLECTION.forEach(card => {
-                const el = document.createElement('div');
-                el.className = `collection-card ${card.unlocked ? '' : 'locked'}`;
-                el.innerHTML = `<div class="collection-card-icon">${card.icon}</div><div class="collection-card-name">${card.name}</div>`;
-                if (card.unlocked) el.addEventListener('click', () => alert(card.description));
-                fragment.appendChild(el);
-            });
-            ELEMENTS.cardCollectionContainer.innerHTML = '';
-            ELEMENTS.cardCollectionContainer.appendChild(fragment);
+
+        // Hover Box
+        if (this.hoverTile) {
+            this.ctx.fillStyle = CONSTANTS.COLORS.hover;
+            this.ctx.fillRect(this.hoverTile.x * CONSTANTS.TILE_SIZE, this.hoverTile.y * CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE);
         }
-        // Game Core
-        const MEMOIZED_SCORE = new Map();
-        function calculateScore(isMatch) {
-            if (isMatch) {
-                ENHANCED_STATE.currentCombo++;
-                ENHANCED_STATE.maxCombo = Math.max(ENHANCED_STATE.maxCombo, ENHANCED_STATE.currentCombo);
-                const timeBonus = Math.max(0, CONFIG.scoring.timeBonusMax - Math.floor(GAME_STATE.timer / CONFIG.scoring.timeBonusDivisor));
-                const comboMultiplier = 1 + (ENHANCED_STATE.currentCombo * CONFIG.scoring.comboMultiplier);
-                ENHANCED_STATE.streakMultiplier = comboMultiplier;
-                ELEMENTS.multiplierDisplay.textContent = comboMultiplier.toFixed(1);
-                if (ENHANCED_STATE.currentCombo >= 3) {
-                    showComboIndicator(ENHANCED_STATE.currentCombo);
-                    NEW_AUDIO_MANAGER.playCombo(ENHANCED_STATE.currentCombo);
-                }
-                const key = `${timeBonus}-${comboMultiplier}`;
-                return MEMOIZED_SCORE.has(key) ? MEMOIZED_SCORE.get(key) : (MEMOIZED_SCORE.set(key, Math.floor((CONFIG.scoring.baseScore + timeBonus) * comboMultiplier)), MEMOIZED_SCORE.get(key));
+
+        // --- 3. NIGHT MODE OVERLAY ---
+        if (this.dayCycle > 75) { // Night time
+            this.ctx.fillStyle = 'rgba(10, 10, 60, 0.4)'; // Dark Blue Tint
+            this.ctx.fillRect(-1000, -1000, 4000, 4000); // Cover the world
+        }
+
+        this.ctx.restore();
+    }
+
+    drawRain() {
+        this.ctx.save();
+        this.ctx.strokeStyle = 'rgba(174, 194, 224, 0.5)';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        for(let i=0; i<100; i++) {
+            let rx = Math.random() * this.width;
+            let ry = Math.random() * this.height;
+            this.ctx.moveTo(rx, ry);
+            this.ctx.lineTo(rx - 5, ry + 15);
+        }
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    drawTile(tile, sx, sy) {
+        let size = CONSTANTS.TILE_SIZE;
+        let isNight = this.dayCycle > 75;
+
+        // 1. Base Terrain & Zone Color
+        if (tile.type === 'water') {
+            this.ctx.fillStyle = CONSTANTS.COLORS.water;
+        } else if (tile.type === 'road') {
+             this.ctx.fillStyle = CONSTANTS.COLORS.road;
+             this.ctx.fillRect(sx, sy, size, size);
+             this.ctx.fillStyle = '#fff';
+             this.ctx.fillRect(sx + size/2 - 2, sy + 5, 4, 15);
+             this.ctx.fillRect(sx + size/2 - 2, sy + size - 20, 4, 15);
+             this.ctx.fillRect(sx + 5, sy + size/2 - 2, 15, 4);
+             this.ctx.fillRect(sx + size - 20, sy + size/2 - 2, 15, 4);
+             return;
+        } else {
+             if (tile.zone === 'downtown') this.ctx.fillStyle = CONSTANTS.COLORS.grass_downtown;
+             else if (tile.zone === 'industrial') this.ctx.fillStyle = CONSTANTS.COLORS.grass_industrial;
+             else this.ctx.fillStyle = CONSTANTS.COLORS.grass_suburb;
+        }
+        this.ctx.fillRect(sx, sy, size, size);
+
+        // 2. Heatmap Overlay
+        if (this.viewMode === 'appeal' && tile.type !== 'water') {
+            let alpha = tile.appeal / 100;
+            if (tile.appeal > 50) this.ctx.fillStyle = `rgba(46, 204, 113, ${alpha * 0.8})`;
+            else this.ctx.fillStyle = `rgba(231, 76, 60, ${(1-alpha) * 0.3})`;
+            this.ctx.fillRect(sx, sy, size, size);
+        }
+
+        // 3. Grid Lines
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(sx, sy, size, size);
+
+        // 4. Buildings
+        if (tile.building) {
+            let b = tile.building;
+            let padding = 10;
+            let buildW = size - padding*2;
+            let buildH = size - padding*2;
+
+            // Draw Main Block
+            this.ctx.fillStyle = b.color;
+            this.ctx.fillRect(sx + padding, sy + padding + 10, buildW, buildH - 10);
+
+            // Detail based on type
+            if (b.stats.type === 'res') { // House
+                this.ctx.beginPath();
+                this.ctx.moveTo(sx + padding, sy + padding + 10);
+                this.ctx.lineTo(sx + size/2, sy + padding - 5);
+                this.ctx.lineTo(sx + size - padding, sy + padding + 10);
+                this.ctx.fillStyle = '#c0392b';
+                this.ctx.fill();
+
+                // Windows (Lit at night)
+                this.ctx.fillStyle = isNight ? '#f1c40f' : '#888';
+                this.ctx.fillRect(sx + padding + 5, sy + padding + 20, 8, 8);
+
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillRect(sx + size/2 - 5, sy + size - 15, 10, 15);
             }
-            ENHANCED_STATE.currentCombo = ENHANCED_STATE.streakMultiplier = 0;
-            ELEMENTS.multiplierDisplay.textContent = '1';
-            return 0;
-        }
-        function showComboIndicator(comboLevel) {
-            const messages = ['', '', '', 'COMBO!', 'GREAT!', 'AMAZING!', 'INCREDIBLE!', 'LEGENDARY!'];
-            ELEMENTS.comboIndicator.textContent = `${messages[Math.min(comboLevel, messages.length - 1)] || 'UNBELIEVABLE!'} ${comboLevel}x COMBO!`;
-            ELEMENTS.comboIndicator.classList.remove('active');
-            void ELEMENTS.comboIndicator.offsetWidth;
-            ELEMENTS.comboIndicator.classList.add('active');
-        }
-        async function useHint() {
-            if (ENHANCED_STATE.powerUps.hint <= 0) return;
-            ENHANCED_STATE.powerUps.hint--;
-            GAME_STATS.powerupsUsed++;
-            await NEW_AUDIO_MANAGER.playPowerUp();
-            updatePowerUpButtons();
-            const unmatched = GAME_STATE.cards.filter(c => !c.matched);
-            if (unmatched.length < 2) return;
-            const symbolCounts = unmatched.reduce((acc, c) => (acc[c.symbol] = (acc[c.symbol] || 0) + 1, acc), {});
-            const pairSymbol = Object.keys(symbolCounts).find(sym => symbolCounts[sym] >= 2);
-            if (!pairSymbol) return;
-            const pair = unmatched.filter(c => c.symbol === pairSymbol).slice(0, 2);
-            highlightCards(pair);
-            checkAchievements();
-            debounceSave();
-        }
-        function highlightCards(cards) {
-            cards.forEach(card => {
-                if (card.element) {
-                    card.element.style.border = '3px solid yellow';
-                    setTimeout(() => {
-                        if (card.element) {
-                            card.element.style.border = '';
-                        }
-                    }, 2000);
+            else if (b.stats.type === 'res_high') { // Apartments
+                for(let r=0; r<3; r++) {
+                    // Windows Lit at night randomly
+                    this.ctx.fillStyle = (isNight && Math.random()>0.3) ? '#f1c40f' : '#ccc';
+                    this.ctx.fillRect(sx+padding+4, sy+padding+14+(r*10), 8, 6);
+                    this.ctx.fillStyle = (isNight && Math.random()>0.3) ? '#f1c40f' : '#ccc';
+                    this.ctx.fillRect(sx+padding+16, sy+padding+14+(r*10), 8, 6);
+                    this.ctx.fillStyle = (isNight && Math.random()>0.3) ? '#f1c40f' : '#ccc';
+                    this.ctx.fillRect(sx+padding+28, sy+padding+14+(r*10), 8, 6);
                 }
-            });
+            }
+            else if (b.stats.type === 'com') { // Shop
+                this.ctx.fillStyle = '#e67e22'; // Awning
+                this.ctx.beginPath();
+                this.ctx.moveTo(sx + padding, sy + padding + 15);
+                this.ctx.lineTo(sx + padding + 5, sy + padding + 25);
+                this.ctx.lineTo(sx + padding + 10, sy + padding + 15);
+                this.ctx.lineTo(sx + padding + 15, sy + padding + 25);
+                this.ctx.lineTo(sx + padding + 20, sy + padding + 15);
+                this.ctx.lineTo(sx + padding + 25, sy + padding + 25);
+                this.ctx.lineTo(sx + padding + 30, sy + padding + 15);
+                this.ctx.lineTo(sx + padding + 35, sy + padding + 25);
+                this.ctx.lineTo(sx + size - padding, sy + padding + 15);
+                this.ctx.fill();
+                // Storefront
+                this.ctx.fillStyle = (isNight) ? '#222' : '#85c1e9'; // Dark at night (closed)
+                this.ctx.fillRect(sx+padding+5, sy+padding+25, buildW-10, buildH-25);
+            }
+            else if (b.stats.type === 'com_high') { // Office
+                this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                this.ctx.beginPath();
+                this.ctx.moveTo(sx + padding, sy + size - padding);
+                this.ctx.lineTo(sx + size - padding, sy + padding + 10);
+                this.ctx.lineTo(sx + size - padding, sy + size - padding);
+                this.ctx.fill();
+            }
+            else if (b.stats.type === 'ind') { // Factory
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillRect(sx + size - 20, sy + 5, 10, 20);
+                if (Math.random() > 0.5) { // Smoke
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                    this.ctx.beginPath();
+                    this.ctx.arc(sx + size - 15, sy + 2, 5, 0, Math.PI*2);
+                    this.ctx.fill();
+                }
+            }
+            else if (b.stats.type === 'transport') { // Metro
+                this.ctx.fillStyle = '#333';
+                this.ctx.fillRect(sx + padding + 5, sy + padding + 20, 24, 20);
+                this.ctx.fillStyle = '#f1c40f'; // M logo
+                this.ctx.font = '20px Arial';
+                this.ctx.fillText("M", sx + size/2, sy + size/2 + 5);
+            }
+            else if (b.stats.type === 'amenity') { // Park
+                this.ctx.fillStyle = '#27ae60';
+                this.ctx.beginPath();
+                this.ctx.arc(sx+size/2, sy+size/2, 12, 0, Math.PI*2);
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.arc(sx+size/2-8, sy+size/2+5, 8, 0, Math.PI*2);
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.arc(sx+size/2+8, sy+size/2+5, 8, 0, Math.PI*2);
+                this.ctx.fill();
+            }
+
+            // Rival Marker
+            if (tile.owner === 'rival') {
+                this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                this.ctx.fillRect(sx+5, sy+size-20, size-10, 15);
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = '12px VT323';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText("RIVAL", sx+size/2, sy+size-9);
+            }
+
+            // Maintenance Warning
+            if(tile.owner === 'player' && b.condition < 40) {
+                this.ctx.fillStyle = 'red';
+                this.ctx.font = 'bold 24px VT323';
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText('!', sx+size-5, sy+25);
+            }
+
+        } else if (tile.owner === 'player') {
+            this.ctx.strokeStyle = '#fff';
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.strokeRect(sx + 5, sy + 5, size - 10, size - 10);
+            this.ctx.setLineDash([]);
+        } else if (tile.owner === 'rival') {
+            this.ctx.fillStyle = '#444';
+            this.ctx.fillRect(sx+5, sy+5, size-10, size-10);
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '16px VT323';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("SOLD", sx+size/2, sy+size/2+5);
+        } else if (tile.type !== 'water') {
+            if(this.viewMode !== 'appeal') {
+                let color = this.marketMultiplier > 1.2 ? '#2ecc71' : (this.marketMultiplier < 0.8 ? '#e74c3c' : 'rgba(0,0,0,0.1)');
+                this.ctx.fillStyle = color;
+                this.ctx.font = 'bold 16px VT323';
+                this.ctx.textAlign = 'center';
+                let price = Math.floor(tile.price * this.marketMultiplier);
+                this.ctx.fillText(`$${price/1000}k`, sx + size/2, sy + size/2 + 5);
+            }
         }
-        async function useShuffle() {
-            if (ENHANCED_STATE.powerUps.shuffle <= 0 || !GAME_STATE.gameStarted || GAME_STATE.flippedCards.length >= 2) return;
-            ENHANCED_STATE.powerUps.shuffle--;
-            GAME_STATS.powerupsUsed++;
-            await NEW_AUDIO_MANAGER.playPowerUp();
-            updatePowerUpButtons();
-            ELEMENTS.gameBoard.style.animation = 'shuffleEffect 0.5s ease-in-out';
-            ELEMENTS.gameBoard.style.opacity = '0.5';
-            setTimeout(() => {
-                ELEMENTS.gameBoard.style.animation = ELEMENTS.gameBoard.style.opacity = '';
-                shuffle(GAME_STATE.cards);
-                ELEMENTS.gameBoard.innerHTML = '';
-                const fragment = document.createDocumentFragment();
-                GAME_STATE.cards.forEach(card => {
-                    const el = createCardElement(card);
-                    card.element = el;
-                    fragment.appendChild(el);
-                });
-                ELEMENTS.gameBoard.appendChild(fragment);
-                GAME_STATE.cards.forEach(card => card.matched && card.element?.classList.add('flipped', 'matched'));
-                GAME_STATE.flippedCards.forEach(card => card.element?.classList.add('flipped'));
-                checkAchievements();
-                debounceSave();
-            }, 500);
+
+        if (tile === this.hoverTile) {
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '12px VT323';
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(tile.zone.toUpperCase(), sx + 4, sy + 12);
         }
-        function createCardElement(card) {
-            const el = document.createElement('div');
-            el.className = 'card';
-            el.dataset.cardId = card.id;
-            el.setAttribute('tabindex', '0');
-            el.setAttribute('role', 'button');
-            el.setAttribute('aria-label', 'Flip card');
-            el.innerHTML = `<div class="card-back"></div><div class="card-front">${card.symbol}</div>`;
-            ['click', 'keydown'].forEach(event => el.addEventListener(event, async e => {
-                // support Enter and Space (different browsers report space as ' ' or 'Spacebar'/'Space')
-                if (event === 'keydown' && !['Enter', ' ', 'Spacebar', 'Space'].includes(e.key)) return;
-                e.preventDefault();
-                await flipCard(el);
+    }
+
+    // --- Events ---
+
+    setupEvents() {
+        window.addEventListener('resize', () => this.resize());
+
+        // --- ZOOM HANDLER ---
+        this.canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            let delta = e.deltaY > 0 ? -0.1 : 0.1;
+            this.adjustZoom(delta);
+        }, { passive: false });
+
+        const getPos = (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if(this.speed === 0) return;
+            this.isDragging = true;
+            this.lastMouse = getPos(e);
+        });
+
+        window.addEventListener('mouseup', () => this.isDragging = false);
+
+        this.canvas.addEventListener('mousemove', (e) => {
+            const mouse = getPos(e);
+            if (this.isDragging) {
+                // Adjust dragging speed based on zoom level to feel natural
+                this.camera.x += (mouse.x - this.lastMouse.x) / this.zoom;
+                this.camera.y += (mouse.y - this.lastMouse.y) / this.zoom;
+                this.lastMouse = mouse;
+            } else {
+                this.calculateHover(mouse.x, mouse.y);
+            }
+        });
+
+        this.canvas.addEventListener('click', (e) => {
+            if(this.speed === 0) return;
+            if (this.isDragging && Math.abs(e.movementX) > 2) return;
+            const mouse = getPos(e);
+            this.handleClick(mouse.x, mouse.y);
+        });
+    }
+
+    screenToGrid(sx, sy) {
+        // 1. Center of screen
+        let cx = this.width / 2;
+        let cy = this.height / 2;
+
+        // 2. Adjust for Zoom (scale around center)
+        // (Input ScreenCoord - Center) / Zoom + Center = WorldCoord relative to screen center
+        let worldX = (sx - cx) / this.zoom + cx;
+        let worldY = (sy - cy) / this.zoom + cy;
+
+        // 3. Grid Dimensions in Pixels
+        let gridPixelWidth = CONSTANTS.GRID_WIDTH * CONSTANTS.TILE_SIZE;
+        let gridPixelHeight = CONSTANTS.GRID_HEIGHT * CONSTANTS.TILE_SIZE;
+
+        // 4. Calculate Offset used in draw()
+        // Draw logic: ctx.translate(cx + camera.x - gridW/2, cy + camera.y - gridH/2)
+        // So WorldCoord = GridCoord * TILE_SIZE + Offset
+        // GridCoord = (WorldCoord - Offset) / TILE_SIZE
+
+        let drawOffsetX = cx + this.camera.x - gridPixelWidth/2;
+        let drawOffsetY = cy + this.camera.y - gridPixelHeight/2;
+
+        let gx = Math.floor((worldX - drawOffsetX) / CONSTANTS.TILE_SIZE);
+        let gy = Math.floor((worldY - drawOffsetY) / CONSTANTS.TILE_SIZE);
+
+        if (gx >= 0 && gx < CONSTANTS.GRID_WIDTH && gy >= 0 && gy < CONSTANTS.GRID_HEIGHT) return { x: gx, y: gy };
+        return null;
+    }
+
+    calculateHover(sx, sy) {
+        let gridPos = this.screenToGrid(sx, sy);
+        this.hoverTile = gridPos ? this.grid[gridPos.x][gridPos.y] : null;
+    }
+
+    handleClick(sx, sy) {
+        let gridPos = this.screenToGrid(sx, sy);
+        if (gridPos) {
+            this.selectedTile = this.grid[gridPos.x][gridPos.y];
+            this.ui.renderSelection(this.selectedTile);
+            this.ui.closeBuildMenu();
+        } else {
+            this.selectedTile = null;
+            this.ui.renderSelection(null);
+        }
+    }
+
+    log(msg, className) {
+        const logEl = document.getElementById('game-log');
+        const entry = document.createElement('div');
+        entry.textContent = `> ${msg}`;
+        if(className) entry.classList.add(className);
+        logEl.prepend(entry);
+    }
+}
+
+class UIManager {
+    constructor(game) {
+        this.game = game;
+        this.elSelection = document.getElementById('selection-content');
+        this.elBuildBtns = document.getElementById('build-buttons');
+        this.elPoliceBtn = document.getElementById('service-police');
+        this.elFireBtn = document.getElementById('service-fire');
+        this.updateServices();
+    }
+
+    updateStats(netProfit = 0, incomeTax = 0) {
+        const fmt = (n) => `$${Math.floor(n).toLocaleString()}`;
+
+        document.getElementById('ui-cash').textContent = fmt(this.game.cash);
+        document.getElementById('ui-loans').textContent = fmt(this.game.loan);
+        document.getElementById('hud-money').textContent = fmt(this.game.cash);
+
+        let assetValue = 0;
+        if (this.game.grid.length > 0) {
+            this.game.grid.forEach(col => col.forEach(t => {
+                if(t.owner === 'player') {
+                    assetValue += t.price * this.game.marketMultiplier;
+                    if(t.building) assetValue += t.building.stats.cost * 0.8;
+                }
             }));
-            return el;
         }
-        async function useFreeze() {
-            if (ENHANCED_STATE.powerUps.freeze <= 0 || !GAME_STATE.gameStarted) return;
-            ENHANCED_STATE.powerUps.freeze--;
-            ENHANCED_STATE.freezeTimeActive = true;
-            ENHANCED_STATE.freezeTimeRemaining = 10;
-            GAME_STATS.powerupsUsed++;
-            await NEW_AUDIO_MANAGER.playPowerUp();
-            updatePowerUpButtons();
-            ELEMENTS.freezeDisplay.style.display = 'block';
-            clearIntervals();
-            GAME_STATE.freezeInterval = setInterval(() => {
-                if (--ENHANCED_STATE.freezeTimeRemaining <= 0) {
-                    clearIntervals();
-                    ENHANCED_STATE.freezeTimeActive = false;
-                    ELEMENTS.freezeDisplay.style.display = 'none';
-                } else ELEMENTS.freezeTime.textContent = ENHANCED_STATE.freezeTimeRemaining;
-            }, 1000);
-            checkAchievements();
-            debounceSave();
-        }
-        function updatePowerUpButtons() {
-            const titles = { hint: `Hint (${ENHANCED_STATE.powerUps.hint} remaining)`, shuffle: `Shuffle (${ENHANCED_STATE.powerUps.shuffle} remaining)`, freeze: `Freeze Time (${ENHANCED_STATE.powerUps.freeze} remaining)` };
-            ['hint', 'shuffle', 'freeze'].forEach(type => {
-                ELEMENTS[`${type}Btn`].title = titles[type];
-                ELEMENTS[`${type}Btn`].disabled = ENHANCED_STATE.powerUps[type] <= 0;
-            });
-        }
-        function resetGame() {
-            clearIntervals();
-            document.querySelectorAll('.particle').forEach(p => p.remove());
-            GAME_STATE.gameStarted = GAME_STATE.gamePaused = false;
-            GAME_STATE.moves = GAME_STATE.timer = GAME_STATE.matchedPairs = GAME_STATE.mismatches = 0;
-            GAME_STATE.flippedCards = GAME_STATE.cards = [];
-            GAME_STATE.playerScores = GAME_STATE.isMultiplayer ? [0, 0] : [0];
-            GAME_STATE.currentPlayer = 0;
-            GAME_STATE.totalPairs = (CONFIG.difficultySettings[GAME_STATE.currentDifficulty].rows * CONFIG.difficultySettings[GAME_STATE.currentDifficulty].cols) / 2;
-            ELEMENTS.matchesDisplay.textContent = `0/${GAME_STATE.totalPairs}`;
-            ENHANCED_STATE.currentCombo = ENHANCED_STATE.streakMultiplier = 0;
-            MEMOIZED_SCORE.clear();
-            ELEMENTS.comboDisplay.textContent = '0';
-            ELEMENTS.multiplierDisplay.textContent = '1';
-            ELEMENTS.timerDisplay.textContent = '0s';
-            ELEMENTS.movesDisplay.textContent = '0';
-            ELEMENTS.scoreDisplay.textContent = '0';
-            ELEMENTS.startMessage.style.display = 'flex';
-            ELEMENTS.pauseBtn.style.display = 'none';
-            ELEMENTS.gameBoard.innerHTML = '';
-            ELEMENTS.gameBoard.className = `game-board ${GAME_STATE.currentDifficulty}`;
-            ELEMENTS.progressFill.style.width = '0%';
-            ENHANCED_STATE.powerUps = { ...CONFIG.powerUps };
-            ENHANCED_STATE.freezeTimeActive = false;
-            updatePowerUpButtons();
-            ELEMENTS.freezeDisplay.style.display = 'none';
-            if (GAME_STATE.isMultiplayer) {
-                updateMultiplayerDisplay();
-                setPlayerActive();
-            }
-            updateGameDisplay();
-            ELEMENTS.multiplayerBtn.textContent = `MULTIPLAYER: ${GAME_STATE.isMultiplayer ? 'ON' : 'OFF'}`;
-        }
-        async function flipCard(cardElement) {
-            if (GAME_STATE.gamePaused || cardElement.classList.contains('flipped') || cardElement.classList.contains('matched') || GAME_STATE.flippedCards.length >= 2) return;
-            await NEW_AUDIO_MANAGER.playFlip();
-            const cardId = parseInt(cardElement.dataset.cardId);
-            const card = GAME_STATE.cards.find(c => c.id === cardId);
-            if (!card) return;
-            cardElement.classList.add('flipped');
-            GAME_STATE.flippedCards.push(card);
-            if (GAME_STATE.flippedCards.length === 2) {
-                GAME_STATE.moves++;
-                ELEMENTS.movesDisplay.textContent = GAME_STATE.moves;
-                setTimeout(checkForMatch, 600);
-            }
-            updateGameDisplay();
-        }
-        async function checkForMatch() {
-            const [card1, card2] = GAME_STATE.flippedCards;
-            const [el1, el2] = [card1.element, card2.element];
-            if (!el1 || !el2) return;
-            if (card1.symbol === card2.symbol) {
-                card1.matched = card2.matched = true;
-                GAME_STATE.matchedPairs++;
-                const points = calculateScore(true);
-                const playerIndex = GAME_STATE.isMultiplayer ? GAME_STATE.currentPlayer : 0;
-                GAME_STATE.playerScores[playerIndex] += points;
-                ELEMENTS.matchesDisplay.textContent = `${GAME_STATE.matchedPairs}/${GAME_STATE.totalPairs}`;
-                ELEMENTS.scoreDisplay.textContent = GAME_STATE.playerScores[playerIndex];
-                el1.classList.add('matched');
-                el2.classList.add('matched');
-                await NEW_AUDIO_MANAGER.playMatch();
-                const particleCount = GAME_STATE.options['low-performance'] ? 1 : (window.innerWidth < 768 ? 3 : 6);
-                createParticles(el1, particleCount);
-                createParticles(el2, particleCount);
-                if (GAME_STATE.isMultiplayer) updateMultiplayerDisplay();
-                if (GAME_STATE.matchedPairs === GAME_STATE.totalPairs) {
-                    await endGame();
-                }
-            } else {
-                calculateScore(false);
-                GAME_STATE.mismatches++;
-                el1.classList.add('mismatch');
-                el2.classList.add('mismatch');
-                await NEW_AUDIO_MANAGER.playMismatch();
-                setTimeout(() => {
-                    el1.classList.remove('flipped', 'mismatch');
-                    el2.classList.remove('flipped', 'mismatch');
-                }, 500);
-            }
-            GAME_STATE.flippedCards = [];
-            if (GAME_STATE.isMultiplayer) switchPlayer();
-            ELEMENTS.scoreDisplay.textContent = GAME_STATE.playerScores[GAME_STATE.isMultiplayer ? GAME_STATE.currentPlayer : 0];
-            updateGameDisplay();
-            checkAchievements();
-        }
-        function createParticles(cardElement, count) {
-            const rect = cardElement.getBoundingClientRect(), x = rect.left + rect.width / 2, y = rect.top + rect.height / 2;
-            const particles = [];
-            const fn = () => {
-                const fragment = document.createDocumentFragment();
-                for (let i = 0; i < count; i++) {
-                    const p = document.createElement('div');
-                    p.className = 'particle';
-                    p.style.left = `${x}px`;
-                    p.style.top = `${y}px`;
-                    p.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                    p.style.setProperty('--tx', `${(Math.random() - 0.5) * 100}px`);
-                    p.style.setProperty('--ty', `${Math.random() * -50}px`);
-                    fragment.appendChild(p);
-                    particles.push(p);
-                }
-                document.body.appendChild(fragment);
-            };
-            if (GAME_STATE.options['low-performance']) {
-                (window.requestIdleCallback || requestAnimationFrame)(fn);
-            } else {
-                fn();
-            }
-            setTimeout(() => particles.forEach(p => p.remove()), 1000);
-        }
-        async function startGame() {
-            // **FIX**: Inform SDK that gameplay has started
-            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStart());
-            
-            GAME_STATE.gameStarted = true;
-            GAME_STATE.totalPairs = (CONFIG.difficultySettings[GAME_STATE.currentDifficulty].rows * CONFIG.difficultySettings[GAME_STATE.currentDifficulty].cols) / 2;
-            ELEMENTS.matchesDisplay.textContent = `0/${GAME_STATE.totalPairs}`;
-            const themeSymbols = CONFIG.themes[GAME_STATE.currentTheme];
-            const numPairs = GAME_STATE.totalPairs;
-            const numSets = Math.ceil(numPairs / themeSymbols.length);
-            const uniqueSymbols = Array.from({ length: numSets }, () => [...themeSymbols]).flat().slice(0, numPairs);
-            const symbols = shuffle([...uniqueSymbols, ...uniqueSymbols]);
-            GAME_STATE.cards = symbols.map((symbol, index) => ({ id: index, symbol, matched: false, element: null }));
-            ELEMENTS.gameBoard.innerHTML = '';
-            const fragment = document.createDocumentFragment();
-            GAME_STATE.cards.forEach(card => {
-                const el = createCardElement(card);
-                card.element = el;
-                fragment.appendChild(el);
-            });
-            ELEMENTS.gameBoard.appendChild(fragment);
-            ELEMENTS.gameBoard.className = `game-board ${GAME_STATE.currentDifficulty}`;
-            if (GAME_STATE.currentDifficulty === 'hard' && window.innerWidth < 480) ELEMENTS.gameBoard.style.gridTemplateColumns = 'repeat(4, 1fr)';
-            ELEMENTS.startMessage.style.display = 'none';
-            ELEMENTS.pauseBtn.style.display = 'inline-block';
-            ELEMENTS.gameBoard.classList.add('visible');
-            GAME_STATE.timerInterval = setInterval(() => {
-                if (!ENHANCED_STATE.freezeTimeActive && GAME_STATE.gameStarted && !GAME_STATE.gamePaused) {
-                    GAME_STATE.timer++;
-                    ELEMENTS.timerDisplay.textContent = `${GAME_STATE.timer}s`;
-                }
-            }, 1000);
-            ELEMENTS.scoreDisplay.textContent = GAME_STATE.playerScores[GAME_STATE.isMultiplayer ? GAME_STATE.currentPlayer : 0];
-            updateGameDisplay();
-            GAME_STATS.gamesPlayed++;
-            checkAchievementsFromStats();
-            debounceSave();
-        }
-        async function endGame() {
-            clearIntervals();
-            GAME_STATE.gameStarted = false;
 
-            // **FIX**: Inform SDK about gameplay stop and a happy moment
-            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayStop());
-            await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.happytime());
-            
-            GAME_STATS.gamesWon++;
-            GAME_STATS.totalMoves += GAME_STATE.moves;
-            GAME_STATS.totalTime += GAME_STATE.timer;
-            GAME_STATS.totalMismatches += GAME_STATE.mismatches;
-            GAME_STATS.highestScore = Math.max(GAME_STATS.highestScore, Math.max(...GAME_STATE.playerScores));
-            GAME_STATS.highestCombo = Math.max(GAME_STATS.highestCombo, ENHANCED_STATE.maxCombo);
-            GAME_STATS.bestTime = Math.min(GAME_STATS.bestTime, GAME_STATE.timer);
-            GAME_STATS.minMoves = Math.min(GAME_STATS.minMoves, GAME_STATE.moves);
-            if (GAME_STATE.moves === GAME_STATE.totalPairs) GAME_STATS.perfectGames++;
-            if (GAME_STATE.isMultiplayer) GAME_STATS.multiplayerWins++;
-            await NEW_AUDIO_MANAGER.playWin();
-            showWinAnimation();
-            checkAchievements();
-            checkCardUnlocks();
-            debounceSave();
-            updateStatsDisplay();
-        }
-        function checkAchievements() {
-            const updates = [];
-            ACHIEVEMENTS.forEach(ach => {
-                let earned = ach.earned;
-                switch (ach.id) {
-                    case 'first_win': if (GAME_STATS.gamesWon >= 1) earned = true; break;
-                    case 'speed_demon': if (GAME_STATE.timer < 60 && GAME_STATE.matchedPairs === GAME_STATE.totalPairs) earned = true; break;
-                    case 'perfect_game': if (GAME_STATE.mismatches === 0 && GAME_STATE.matchedPairs === GAME_STATE.totalPairs) earned = true; break;
-                    case 'combo_master': if (ENHANCED_STATE.maxCombo >= 5) earned = true; break;
-                    case 'night_owl': if (GAME_STATS.gamesPlayed >= 10) earned = true; break;
-                    case 'power_up_master': if (GAME_STATS.powerupsUsed >= 5) earned = true; break;
-                    case 'quick_thinker': if (GAME_STATE.timer < 30 && GAME_STATE.matchedPairs === GAME_STATE.totalPairs) earned = true; break;
-                    case 'minimalist': if (GAME_STATE.moves < 10 && GAME_STATE.matchedPairs === GAME_STATE.totalPairs) earned = true; break;
-                }
-                if (!ach.earned && earned) updates.push(ach.id);
-                ach.earned = earned;
-            });
-            if (updates.length) {
-                updateAchievementsDisplay();
-                debounceSave();
-            }
-        }
-        function checkAchievementsFromStats() {
-            checkAchievements();
-        }
-        function showWinAnimation() {
-            const isMulti = GAME_STATE.isMultiplayer;
-            const p1Score = GAME_STATE.playerScores[0], p2Score = GAME_STATE.playerScores[1];
-            ELEMENTS.winTitle.textContent = isMulti ? (p1Score > p2Score ? 'Player 1 Wins!' : p2Score > p1Score ? 'Player 2 Wins!' : "It's a Tie!") : 'VICTORY!';
-            const statsHTML = `
-                <div class="win-stat"><span class="win-stat-label">Time:</span><span class="win-stat-value">${GAME_STATE.timer}s</span></div>
-                <div class="win-stat"><span class="win-stat-label">Moves:</span><span class="win-stat-value">${GAME_STATE.moves}</span></div>
-                ${!isMulti ? `<div class="win-stat"><span class="win-stat-label">Score:</span><span class="win-stat-value">${p1Score}</span></div><div class="win-stat"><span class="win-stat-label">Max Combo:</span><span class="win-stat-value">${ENHANCED_STATE.maxCombo}x</span></div>` : `
-                <div class="win-stat"><span class="win-stat-label">Player 1 Score:</span><span class="win-stat-value">${p1Score}</span></div>
-                <div class="win-stat"><span class="win-stat-label">Player 2 Score:</span><span class="win-stat-value">${p2Score}</span></div>
-                <div class="win-stat"><span class="win-stat-label">Max Combo:</span><span class="win-stat-value">${ENHANCED_STATE.maxCombo}x</span></div>`}
-            `;
-            ELEMENTS.winStats.innerHTML = statsHTML;
-            ELEMENTS.winAnimation.classList.add('active');
-        }
-        function checkCardUnlocks() {
-            const maxScore = Math.max(...GAME_STATE.playerScores);
-            CARD_COLLECTION.forEach(card => {
-                let unlocked = card.unlocked;
-                switch (card.id) {
-                    case 1: if (maxScore > 2000) unlocked = true; break;
-                    case 2: if (GAME_STATE.timer < 60) unlocked = true; break;
-                    case 3: if (ENHANCED_STATE.maxCombo >= 5) unlocked = true; break;
-                    case 4: if (GAME_STATE.mismatches === 0) unlocked = true; break;
-                    case 5: if (GAME_STATS.multiplayerWins >= 3) unlocked = true; break;
-                }
-                if (!card.unlocked && unlocked) {
-                    card.unlocked = true;
-                    GAME_STATS.cardsCollected++;
-                }
-            });
-            updateCardCollectionDisplay();
-            debounceSave();
-        }
-        async function togglePause() {
-            if (!GAME_STATE.gameStarted) return;
-            
-            GAME_STATE.gamePaused = !GAME_STATE.gamePaused;
+        this.game.netWorth = this.game.cash - this.game.loan + assetValue;
+        document.getElementById('ui-networth').textContent = fmt(this.game.netWorth);
 
-            if (GAME_STATE.gamePaused) {
-                clearIntervals();
-                // **FIX**: Inform SDK that gameplay is paused
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayPause());
-                ELEMENTS.pauseBtn.textContent = 'RESUME';
+        let sign = netProfit >= 0 ? '+' : '';
+        document.getElementById('ui-income').textContent = `${sign}${fmt(netProfit)} (Tax: ${fmt(incomeTax)})`;
+        document.getElementById('ui-income').className = netProfit >= 0 ? 'trend-up' : 'trend-down';
+
+        document.getElementById('ui-date').textContent = `Wk ${this.game.week}, Yr ${this.game.year}`;
+
+        document.getElementById('ui-market').textContent = `${this.game.marketTrend} (${this.game.marketIndex.toFixed(0)}%)`;
+        let trendColor = 'trend-flat';
+        if(this.game.marketTrend === 'Boom') trendColor = 'trend-up';
+        if(this.game.marketTrend === 'Recession') trendColor = 'trend-down';
+        document.getElementById('ui-market').className = trendColor;
+    }
+
+    updateTicker() {
+        let text = "";
+        let index = this.game.marketIndex.toFixed(0);
+        if(this.game.marketTrend === 'Boom') text = `NEWS: ECONOMY BOOMING! Market Index at ${index}%!`;
+        else if(this.game.marketTrend === 'Recession') text = `NEWS: MARKET CRASH! Index hits ${index}%. INVESTORS FEARFUL.`;
+        else text = `NEWS: Real Estate Market Stable. Index: ${index}%.`;
+        document.getElementById('ticker').textContent = text;
+    }
+
+    updateServices() {
+        // Police
+        if (this.game.services.police) {
+            this.elPoliceBtn.classList.add('service-active');
+            this.elPoliceBtn.textContent = `👮‍♂️ Police ACTIVE (-$${CONSTANTS.SERVICE_COSTS.police}/wk)`;
+        } else {
+            this.elPoliceBtn.classList.remove('service-active');
+            this.elPoliceBtn.textContent = `👮‍♂️ Police ($${CONSTANTS.SERVICE_COSTS.police}/wk)`;
+        }
+
+        // Fire
+        if (this.game.services.fire) {
+            this.elFireBtn.classList.add('service-active');
+            this.elFireBtn.textContent = `🚒 Fire ACTIVE (-$${CONSTANTS.SERVICE_COSTS.fire}/wk)`;
+        } else {
+            this.elFireBtn.classList.remove('service-active');
+            this.elFireBtn.textContent = `🚒 Fire ($${CONSTANTS.SERVICE_COSTS.fire}/wk)`;
+        }
+    }
+
+    showAchievement(ach) {
+        const el = document.getElementById('achievement-popup');
+        const txt = document.getElementById('ach-text');
+        txt.textContent = ach.name;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+
+    renderSelection(tile) {
+        if (!tile) {
+            this.elSelection.innerHTML = '<p style="text-align:center; color:#666;">Select a tile to interact.</p>';
+            return;
+        }
+
+        let html = `<h3>Coords: (${tile.x}, ${tile.y})</h3>`;
+        html += `<div class="stat-row"><span>Zone:</span> <span>${tile.zone.toUpperCase()}</span></div>`;
+        html += `<div class="stat-row"><span>Appeal:</span> <span>${tile.appeal}/100</span></div>`;
+
+        if (tile.type === 'water') {
+            html += '<p>Cannot build on water.</p>';
+        } else if (tile.owner === 'rival') {
+            // Rival Owned View
+            html += `<p style="color:red; text-align:center; font-weight:bold;">OWNED BY RIVAL</p>`;
+            if (tile.building) {
+                 html += `<div class="panel-header" style="background:#444; margin-top:10px;">${tile.building.name}</div>`;
+                 html += `<div class="stat-row"><span>Condition:</span> <span style="color:${tile.building.condition < 40 ? 'red':'inherit'}">${Math.floor(tile.building.condition)}%</span></div>`;
+            }
+            // Takeover logic
+            let landCost = tile.price * this.game.marketMultiplier * 2.5;
+            let buildCost = tile.building ? tile.building.stats.cost * 2 : 0;
+            let total = Math.floor(landCost + buildCost);
+
+            html += `<hr>`;
+            html += `<p style="font-size:0.9rem;">Hostile Takeover (2.5x Price)</p>`;
+            html += `<button class="warning" onclick="Game.actions.takeover()">BUYOUT ($${total.toLocaleString()})</button>`;
+
+        } else if (tile.owner === null) {
+            let cost = Math.floor(tile.price * this.game.marketMultiplier);
+            html += `<div class="stat-row"><span>Price:</span> <span>$${cost.toLocaleString()}</span></div>`;
+            if (tile.type === 'road') {
+                html += `<p style="color:#d63031; font-size: 0.9rem;">(Road tile. Cannot buy or build.)</p>`;
             } else {
-                // **FIX**: Inform SDK that gameplay has resumed
-                await callCrazyGamesEvent(() => window.CrazyGames.SDK.game.gameplayResume());
-                GAME_STATE.timerInterval = setInterval(() => {
-                    if (!ENHANCED_STATE.freezeTimeActive && GAME_STATE.gameStarted && !GAME_STATE.gamePaused) {
-                        GAME_STATE.timer++;
-                        ELEMENTS.timerDisplay.textContent = `${GAME_STATE.timer}s`;
-                    }
-                }, 1000);
-                if (ENHANCED_STATE.freezeTimeActive) {
-                    GAME_STATE.freezeInterval = setInterval(() => {
-                        if (--ENHANCED_STATE.freezeTimeRemaining <= 0) {
-                            clearIntervals();
-                            ENHANCED_STATE.freezeTimeActive = false;
-                            ELEMENTS.freezeDisplay.style.display = 'none';
-                        } else ELEMENTS.freezeTime.textContent = ENHANCED_STATE.freezeTimeRemaining;
-                    }, 1000);
+                html += `<button class="primary" onclick="Game.actions.buyLand()">BUY LAND</button>`;
+            }
+        } else if (tile.owner === 'player') {
+            if (!tile.building) {
+                html += `<p>Empty Lot.</p>`;
+                html += `<button class="primary" onclick="Game.actions.openBuildMenu()">BUILD...</button>`;
+                html += `<button class="warning" onclick="Game.actions.sellLand()" style="margin-top:5px">SELL LAND</button>`;
+            } else {
+                let b = tile.building;
+                html += `<div class="panel-header" style="background:${b.color}; margin-top:10px;">${b.name} (Lvl ${b.level})</div>`;
+
+                let conditionColor = b.condition < 40 ? 'red' : (b.condition < 70 ? '#f1c40f' : '#2ecc71');
+                html += `<div class="stat-row"><span>Condition:</span> <span style="color:${conditionColor}">${Math.floor(b.condition)}%</span></div>`;
+
+                if (b.type !== 'park' && b.type !== 'transport') {
+                    let conditionMultiplier = b.condition / 100;
+                    let currentRent = Math.floor(b.baseRent * b.level * (tile.appeal/50) * conditionMultiplier * this.game.marketMultiplier);
+                    html += `<div class="stat-row"><span>Est. Rent:</span> <span>$${currentRent}/wk</span></div>`;
+                    html += `<div class="stat-row"><span>Maint. Cost:</span> <span>$${b.maintenance}/wk</span></div>`;
                 }
-                ELEMENTS.pauseBtn.textContent = 'PAUSE';
+
+                html += `<hr>`;
+                let renoCost = 1000 * b.level;
+                let renoDisabled = b.condition === 100 ? 'disabled' : '';
+                let renoLabel = b.condition === 100 ? 'Already Perfect' : `Renovate ($${renoCost.toLocaleString()})`;
+
+                html += `<button ${renoDisabled} onclick="Game.actions.renovate()">${renoLabel}</button>`;
+                html += `<button onclick="Game.actions.upgrade()">Upgrade</button>`;
+                html += `<button class="danger" onclick="Game.actions.sellLand()">SELL PROPERTY</button>`;
             }
         }
-        function toggleMultiplayer() {
-            GAME_STATE.isMultiplayer = !GAME_STATE.isMultiplayer;
-            ELEMENTS.multiplayerIndicator.style.display = GAME_STATE.isMultiplayer ? 'flex' : 'none';
-            GAME_STATE.playerScores = GAME_STATE.isMultiplayer ? [0, 0] : [0];
-            GAME_STATE.currentPlayer = 0;
-            if (GAME_STATE.isMultiplayer) {
-                updateMultiplayerDisplay();
-                setPlayerActive();
+        this.elSelection.innerHTML = html;
+    }
+
+    showBuildMenu() {
+        let html = '';
+        const types = Object.values(CONSTANTS.BUILDING_TYPES);
+
+        types.forEach(type => {
+            let isLocked = this.game.netWorth < type.unlock;
+            let clickAction = isLocked ? '' : `onclick="Game.actions.build('${type.id}')"`;
+            let hint = isLocked ? `<span class="locked-hint">Unlock at $${type.unlock.toLocaleString()} Net Worth</span>` : '';
+
+            // Show zoning warning if not allowed
+            let zoneWarning = '';
+            if (!isLocked && this.game.selectedTile && !type.allowed.includes(this.game.selectedTile.zone)) {
+                zoneWarning = `<span style="color:#e74c3c; font-size:0.8rem;">(Not allowed in ${this.game.selectedTile.zone})</span>`;
             }
-            ELEMENTS.scoreDisplay.textContent = GAME_STATE.playerScores[GAME_STATE.isMultiplayer ? GAME_STATE.currentPlayer : 0];
-            ELEMENTS.multiplayerBtn.textContent = `MULTIPLAYER: ${GAME_STATE.isMultiplayer ? 'ON' : 'OFF'}`;
-            debounceSave();
-        }
-        function setPlayerActive() {
-            ELEMENTS.player1Indicator.classList.toggle('active', GAME_STATE.currentPlayer === 0);
-            ELEMENTS.player2Indicator.classList.toggle('active', GAME_STATE.currentPlayer === 1);
-        }
-        function switchPlayer() {
-            GAME_STATE.currentPlayer = 1 - GAME_STATE.currentPlayer;
-            setPlayerActive();
-        }
-        function updateMultiplayerDisplay() {
-            ELEMENTS.player1Score.textContent = GAME_STATE.playerScores[0];
-            ELEMENTS.player2Score.textContent = GAME_STATE.playerScores[1];
-        }
-        function updateGameDisplay() {
-            const progress = (GAME_STATE.matchedPairs / GAME_STATE.totalPairs) * 100;
-            const currentWidth = parseFloat(ELEMENTS.progressFill.style.width) || 0;
-            if (Math.abs(currentWidth - progress) > 0.1) ELEMENTS.progressFill.style.width = `${progress}%`;
-            ELEMENTS.comboDisplay.textContent = ENHANCED_STATE.currentCombo;
-        }
-        window.addEventListener('load', initGame);
-    </script>
+
+            html += `<button ${isLocked ? 'disabled' : ''} ${clickAction}>${type.icon} ${type.name} ($${(type.cost/1000).toLocaleString()}k) ${zoneWarning}</button>`;
+            if(isLocked) html += hint;
+            else html += `<div class="stat-row"><small>${this.getDesc(type.id)}</small></div>`;
+        });
+
+        this.elBuildBtns.innerHTML = html;
+        document.getElementById('action-panel').style.display = 'none';
+        document.getElementById('build-menu').style.display = 'block';
+    }
+
+    getDesc(id) {
+        if(id === 'residential') return "Low rent, stable, low decay.";
+        if(id === 'commercial') return "Needs foot traffic, moderate decay.";
+        if(id === 'park') return "Boosts nearby value, low maintenance.";
+        if(id === 'apartment') return "High density residential, high decay.";
+        if(id === 'office') return "Massive profits, very high decay.";
+        if(id === 'factory') return "Big money, creates pollution.";
+        if(id === 'metro') return "Boosts nearby Shop/Office rent.";
+        return "";
+    }
+
+    closeBuildMenu() {
+        document.getElementById('build-menu').style.display = 'none';
+        document.getElementById('action-panel').style.display = 'block';
+    }
+}
+
+const Game = new GameEngine();
+
+</script>
 </body>
 </html>
